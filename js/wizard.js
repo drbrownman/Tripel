@@ -102,6 +102,54 @@ async function wizardNext() {
         t.name = await nameTrip(t);
       }
       App.trips.sort((a, b) => b.startTime - a.startTime);
+
+      if (App.trips.length > 0) {
+        let allElements = [];
+        let totalStops = 0;
+        let totalDist = 0;
+        let transportModes = {};
+        let longestStop = 0;
+        let maxRangeKm = 0;
+        
+        for (let i = App.trips.length - 1; i >= 0; i--) {
+            allElements.push(...App.trips[i].elements);
+            totalStops += App.trips[i].stats.stops || 0;
+            totalDist += App.trips[i].stats.distKm || 0;
+            if (App.trips[i].stats.maxRangeKm > maxRangeKm) maxRangeKm = App.trips[i].stats.maxRangeKm;
+            if (App.trips[i].stats.longestStop > longestStop) longestStop = App.trips[i].stats.longestStop;
+            Object.entries(App.trips[i].stats.transportModes || {}).forEach(([k,v]) => {
+                transportModes[k] = (transportModes[k] || 0) + v;
+            });
+        }
+        
+        const first = App.trips[App.trips.length - 1];
+        const last = App.trips[0];
+        
+        const allTripsSpecial = {
+            id: 'all-trips',
+            name: 'All Trips',
+            startTime: first.startTime,
+            endTime: last.endTime,
+            displayStartDate: first.displayStartDate,
+            displayStartShortDate: 'All Time',
+            displayEndDate: last.displayEndDate,
+            elements: allElements,
+            stats: {
+                distKm: totalDist,
+                days: Math.ceil((last.endTime - first.startTime) / 86400000),
+                stops: totalStops,
+                maxRangeKm: maxRangeKm,
+                transportModes: transportModes,
+                longestStop: longestStop,
+                avgSpeedKmh: 0
+            },
+            destination: null,
+            _destName: 'All regions',
+            _maxRange: maxRangeKm,
+            isSpecial: true
+        };
+        App.trips.unshift(allTripsSpecial);
+      }
     } catch (e) {
       console.error(e);
       toast('Error during trip segmentation: ' + e.message, 'error');

@@ -89,17 +89,25 @@ function toggleGroupByYear() {
 function renderTripCards() {
   const grid = document.getElementById('trips-grid');
   const badge = document.getElementById('trip-count-badge');
-  badge.textContent = `${App.trips.length} trip${App.trips.length !== 1 ? 's' : ''}`;
+  const regularTrips = App.trips.filter(t => t.id !== 'all-trips');
+  const allTripsTrip = App.trips.find(t => t.id === 'all-trips');
 
-  if (!App.trips.length) {
+  badge.textContent = `${regularTrips.length} trip${regularTrips.length !== 1 ? 's' : ''}`;
+
+  if (!regularTrips.length) {
     grid.innerHTML = `<div class="empty-trips" style="grid-column:1/-1"><i class="fa-solid fa-map-pin"></i><p>No trips yet. Import your travel data to get started.</p></div>`;
     return;
   }
 
   let html = '';
+
+  if (allTripsTrip) {
+    html += tripCardHtml(allTripsTrip);
+  }
+
   if (_groupByYear) {
     const byYear = {};
-    App.trips.forEach(t => {
+    regularTrips.forEach(t => {
       const y = t.startTime.getFullYear();
       (byYear[y] || (byYear[y] = [])).push(t);
     });
@@ -108,7 +116,7 @@ function renderTripCards() {
       html += byYear[yr].map(t => tripCardHtml(t)).join('');
     });
   } else {
-    html = App.trips.map(t => tripCardHtml(t)).join('');
+    html += regularTrips.map(t => tripCardHtml(t)).join('');
   }
   grid.innerHTML = html;
 }
