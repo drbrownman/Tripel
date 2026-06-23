@@ -1,14 +1,21 @@
 // ============================================================
 // MAP INIT
 // ============================================================
-function initMap() {
-  App.map = L.map('map', { zoomControl: false, attributionControl: true }).setView([20, 0], 3);
-  const theme = getTheme('carto-dark');
+function resetMapToTheme(themeId = 'carto-dark') {
+  const theme = getTheme(themeId);
+  if (App.mapLayers.basemap) {
+    App.map.removeLayer(App.mapLayers.basemap);
+  }
   App.mapLayers.basemap = L.tileLayer(theme.basemapUrl, {
     attribution: theme.basemapAttr,
     maxZoom: 19,
     crossOrigin: true
   }).addTo(App.map);
+}
+
+function initMap() {
+  App.map = L.map('map', { zoomControl: false, attributionControl: true }).setView([20, 0], 3);
+  resetMapToTheme('carto-dark');
   App.mapLayers.tripGroup = L.layerGroup().addTo(App.map);
 }
 
@@ -35,6 +42,7 @@ function showHome() {
   // document.getElementById('btn-home').style.display = 'none';
   if (window.exitSlideshowMode) window.exitSlideshowMode();
   clearTripMapLayers();
+  resetMapToTheme();
   adjustMapForPanel(false);
   App.map.setView([20, 0], 3);
 }
@@ -49,6 +57,7 @@ function showTripsView() {
   document.getElementById('side-panel').classList.remove('open');
   adjustMapForPanel(false);
   clearTripMapLayers();
+  resetMapToTheme();
   renderTripCards();
 
   if (App.trips.length) {
@@ -161,10 +170,22 @@ function viewTrip(tripId) {
   App.spTab = 'overview';
   switchSpTab('overview')
   renderSpTab();
+
   renderTripOnMap(trip);
 }
 
 function closeTripView() {
+  const center = App.map.getCenter();
+  const zoom = App.map.getZoom();
+
+  const tripId = App.currentTripId;
+  const trip = App.trips.find(t => t.id === tripId);
+
+  if (trip != null) {
+    trip.lastView = { center, zoom };
+    // console.log("Saved trip view: " + trip.lastView)
+  }
+
   document.getElementById('side-panel').classList.remove('open');
   if (window.exitSlideshowMode) window.exitSlideshowMode();
   adjustMapForPanel(false);
@@ -649,8 +670,13 @@ function renderTripOnMap(trip, retainView = false) {
   }
 
   // Fit map to trip
-  if (bounds.length && !retainView) {
-    App.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  if (!retainView) {
+    if (trip.lastView != null) {
+      // console.log("Loading saved trip view: " + trip.lastView)
+      App.map.setView(trip.lastView.center, trip.lastView.zoom);
+    } else if (bounds.length) {
+      App.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+    }
   }
 }
 
