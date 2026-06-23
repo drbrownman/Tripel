@@ -24,7 +24,7 @@
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-    gtag('config', 'G-SEH07VQ0X0'); // Replace with actual GA Measurement ID
+    gtag('config', 'G-SEH07VQ0X0');
   </script>
 
   <link rel="stylesheet" href="css/styles.css">
@@ -47,10 +47,14 @@
       <i class="fa-solid fa-cloud-arrow-up"></i> <span>Import Data</span>
     </button> -->
     <button class="hdr-btn primary" id="btn-save" style="display:none" onclick="saveAppState()">
-      <i class="fa-solid fa-save"></i> <span>Save State</span>
+      <i class="fa-solid fa-save"></i> <span>Save Session</span>
     </button>
-    <button class="hdr-btn primary" id="btn-trips" style="display:none" onclick="showTripsView()">
+    <!-- <button class="hdr-btn primary" id="btn-trips" style="display:none" onclick="showTripsView()">
       <i class="fa-solid fa-map-location-dot"></i> <span>My Trips</span>
+    </button> -->
+    <button class="hdr-btn primary" id="btn-github" style="display:flex"
+      onclick="window.open('https://github.com/drbrownman/Tripel', '_blank')">
+      <i class="fa-brands fa-github"></i> <span>Github</span>
     </button>
   </header>
 

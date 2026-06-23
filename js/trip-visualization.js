@@ -43,7 +43,7 @@ function showTripsView() {
   document.getElementById('welcome-card').style.display = 'none';
   document.getElementById('trips-section').style.display = 'flex';
   document.getElementById('trips-section').style.flexDirection = 'column';
-  document.getElementById('btn-trips').style.display = 'none';
+  // document.getElementById('btn-trips').style.display = 'none';
   if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'none';
   // document.getElementById('btn-home').style.display = 'flex';
   document.getElementById('side-panel').classList.remove('open');
@@ -52,7 +52,7 @@ function showTripsView() {
   renderTripCards();
 
   if (App.trips.length) {
-    document.getElementById('btn-trips').style.display = 'flex';
+    // document.getElementById('btn-trips').style.display = 'flex';
     if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'flex';
     // Show all trip locations as dots on map
     const pts = App.trips.filter(t => t.destination).map(t => [t.destination.lat, t.destination.lng]);
