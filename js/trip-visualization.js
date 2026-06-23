@@ -665,6 +665,7 @@ function renderTripOnMap(trip, retainView = false) {
 
     const icon = L.divIcon({
       className: 'custom-div-icon',
+      // html: `<div class="map-marker ${markerClass}" style=""><i class="fa-solid ${iconStr}" style="color:${colorStr}"></i></div>`,
       html: `<div class="map-marker ${markerClass}" style="background:${colorStr}"><i class="fa-solid ${iconStr}" style="color:#000"></i></div>`,
       iconSize: [28, 28], iconAnchor: [8, 28]
     });

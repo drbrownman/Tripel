@@ -1457,6 +1457,7 @@ input[type=range]::-webkit-slider-thumb {
 .map-marker {
   width: 28px;
   height: 28px;
+  /* background: rgba(0, 0, 0, 0.1); */
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   display: flex;
