@@ -134,20 +134,20 @@ async function loadAppState() {
         return value;
       });
       Object.assign(App, revived);
-      
-      if (App.trips) {
-          const allTrips = App.trips.find(t => t.id === 'all-trips');
-          if (allTrips) {
-             const elementMap = {};
-             App.trips.forEach(t => {
-                if (t.id !== 'all-trips') {
-                   t.elements.forEach(e => elementMap[e._id] = e);
-                }
-             });
-             allTrips.elements = allTrips.elements.map(e => elementMap[e._id] || e);
-          }
-      }
-      
+
+      // if (App.trips) {
+      //     const allTrips = App.trips.find(t => t.id === 'all-trips');
+      //     if (allTrips) {
+      //        const elementMap = {};
+      //        App.trips.forEach(t => {
+      //           if (t.id !== 'all-trips') {
+      //              t.elements.forEach(e => elementMap[e._id] = e);
+      //           }
+      //        });
+      //        allTrips.elements = allTrips.elements.map(e => elementMap[e._id] || e);
+      //     }
+      // }
+
       return true;
     }
   } catch (e) {
