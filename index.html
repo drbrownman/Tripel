@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tripel – Personal Travel Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="icon"
+    href=" data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20height%3D%2214%22%20width%3D%2214%22%20viewBox%3D%220%200%20640%20640%22%3E%3C!--!Font%20Awesome%20Free%20v7.2.0%20by%20%40fontawesome%20-%20https%3A%2F%2Ffontawesome.com%20License%20-%20https%3A%2F%2Ffontawesome.com%2Flicense%2Ffree%20Copyright%202026%20Fonticons%2C%20Inc.--%3E%3Cpath%20fill%3D%22rgb(99%2C%20230%2C%20190)%22%20d%3D%22M576%20160C576%20210.2%20516.9%20285.1%20491.4%20315C487.6%20319.4%20482%20321.1%20476.9%20320L384%20320C366.3%20320%20352%20334.3%20352%20352C352%20369.7%20366.3%20384%20384%20384L480%20384C533%20384%20576%20427%20576%20480C576%20533%20533%20576%20480%20576L203.6%20576C212.3%20566.1%20222.9%20553.4%20233.6%20539.2C239.9%20530.8%20246.4%20521.6%20252.6%20512L480%20512C497.7%20512%20512%20497.7%20512%20480C512%20462.3%20497.7%20448%20480%20448L384%20448C331%20448%20288%20405%20288%20352C288%20299%20331%20256%20384%20256L423.8%20256C402.8%20224.5%20384%20188.3%20384%20160C384%20107%20427%2064%20480%2064C533%2064%20576%20107%20576%20160zM181.1%20553.1C177.3%20557.4%20173.9%20561.2%20171%20564.4L169.2%20566.4L169%20566.2C163%20570.8%20154.4%20570.2%20149%20564.4C123.8%20537%2064%20466.5%2064%20416C64%20363%20107%20320%20160%20320C213%20320%20256%20363%20256%20416C256%20446%20234.9%20483%20212.5%20513.9C201.8%20528.6%20190.8%20541.9%20181.7%20552.4L181.1%20553.1zM192%20416C192%20398.3%20177.7%20384%20160%20384C142.3%20384%20128%20398.3%20128%20416C128%20433.7%20142.3%20448%20160%20448C177.7%20448%20192%20433.7%20192%20416zM480%20192C497.7%20192%20512%20177.7%20512%20160C512%20142.3%20497.7%20128%20480%20128C462.3%20128%20448%20142.3%20448%20160C448%20177.7%20462.3%20192%20480%20192z%22%2F%3E%3C%2Fsvg%3E%0A"
+    type="image/svg+xml">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+  <!-- Google Analytics Stub -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    // gtag('config', 'G-XXXXXXXXXX'); // Replace with actual GA Measurement ID
+  </script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <!-- LEAFLET MAP -->
+  <div id="map"></div>
+  <div id="slideshow-guide-overlay"></div>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo"><i class="fa-solid fa-route"></i> Tripel</div>
+    <div class="header-spacer"></div>
+    <!-- <button class="hdr-btn" id="btn-home" style="display:none" onclick="showHome()" data-tip="Home">
+      <i class="fa-solid fa-house"></i> <span>Home</span>
+    </button> -->
+    <!-- <button class="hdr-btn" id="btn-import" onclick="openWizard()">
+      <i class="fa-solid fa-cloud-arrow-up"></i> <span>Import Data</span>
+    </button> -->
+    <button class="hdr-btn primary" id="btn-save" style="display:none" onclick="saveAppState()">
+      <i class="fa-solid fa-save"></i> <span>Save State</span>
+    </button>
+    <button class="hdr-btn primary" id="btn-trips" style="display:none" onclick="showTripsView()">
+      <i class="fa-solid fa-map-location-dot"></i> <span>My Trips</span>
+    </button>
+  </header>
+
+  <!-- MAIN PANEL (welcome + trip list) -->
+  <div id="main-panel">
+    <!-- Welcome Card -->
+    <div id="welcome-card">
+      <h1>Your trips, <span>revisited.</span></h1>
+      <p>Import your Google Maps Timeline data and Tripel will automatically detect your trips, tag your stops, and
+        visualize your adventures on a live map.</p>
+      <div class="welcome-features">
+        <div class="wf-item"><i class="fa-solid fa-wand-magic-sparkles"></i>
+          <div>
+            <div class="wf-title">Auto-detection</div>
+            <div class="wf-text">Trips are detected from your raw location history automatically</div>
+          </div>
+        </div>
+        <div class="wf-item"><i class="fa-solid fa-map"></i>
+          <div>
+            <div class="wf-title">Live map view</div>
+            <div class="wf-text">Visualize routes, stops, and flights on an interactive map</div>
+          </div>
+        </div>
+        <div class="wf-item"><i class="fa-solid fa-pen-to-square"></i>
+          <div>
+            <div class="wf-title">Edit & tag</div>
+            <div class="wf-text">Rename trips, tag stops, and hide unwanted segments</div>
+          </div>
+        </div>
+        <div class="wf-item"><i class="fa-solid fa-file-arrow-down"></i>
+          <div>
+            <div class="wf-title">Share</div>
+            <div class="wf-text">Beautiful trip maps, ready for social media</div>
+          </div>
+        </div>
+      </div>
+      <div class="welcome-actions">
+        <button class="btn accent" onclick="openWizard()"><i class="fa-solid fa-plane-departure"></i> Get
+          Started</button>
+      </div>
+    </div>
+    <!-- Trips Section -->
+    <div id="trips-section" style="display:none">
+      <div class="trips-header">
+        <h2>My Trips</h2>
+        <span class="trip-count" id="trip-count-badge">0 trips</span>
+        <div style="flex:1"></div>
+        <button class="btn sm ghost" id="btn-group-year" onclick="toggleGroupByYear()" data-tip="Group by year"><i
+            class="fa-solid fa-calendar"></i></button>
+        <button class="btn sm ghost" onclick="openWizard()"><i class="fa-solid fa-plus"></i> Add</button>
+      </div>
+      <div id="trips-grid"></div>
+    </div>
+  </div>
+
+  <!-- WIZARD MODAL -->
+  <div class="modal-overlay" id="wizard-overlay">
+    <div class="modal" id="wizard-modal">
+      <!-- Step indicators -->
+      <div class="wizard-steps">
+        <div class="wz-step" id="wz-ind-1">
+          <div class="wz-step-num">1</div>
+          <div class="wz-step-label">Upload</div>
+        </div>
+        <div class="wz-step-line"></div>
+        <div class="wz-step" id="wz-ind-2">
+          <div class="wz-step-num">2</div>
+          <div class="wz-step-label">Settings</div>
+        </div>
+        <div class="wz-step-line"></div>
+        <div class="wz-step" id="wz-ind-3">
+          <div class="wz-step-num">3</div>
+          <div class="wz-step-label">Tag Places</div>
+        </div>
+        <div class="wz-step-line"></div>
+        <div class="wz-step" id="wz-ind-4">
+          <div class="wz-step-num">4</div>
+          <div class="wz-step-label">Trips Found</div>
+        </div>
+      </div>
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h3 id="wz-title">Upload Your Travel Data</h3>
+        <button class="modal-close" onclick="closeWizard()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <!-- Step body -->
+      <div class="wz-body" id="wz-body"></div>
+      <!-- Footer -->
+      <div class="wz-footer">
+        <button class="btn ghost" id="wz-btn-back" onclick="wizardBack()"><i class="fa-solid fa-arrow-left"></i>
+          Back</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="wz-status" style="font-size:12px;color:var(--text2);"></span>
+          <button class="btn accent" id="wz-btn-next" onclick="wizardNext()">Next <i
+              class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIP DETAIL SIDE PANEL -->
+  <div id="side-panel">
+    <div class="sp-header">
+      <button class="sp-close" onclick="closeTripView()" data-tip="Back to list"><i
+          class="fa-solid fa-arrow-left"></i></button>
+      <h2 id="sp-trip-name">Trip Name</h2>
+      <button class="sp-close" onclick="startRenameTrip()" data-tip="Rename"><i class="fa-solid fa-pen"></i></button>
+      <button class="sp-close" onclick="downloadCurrentTrip()" data-tip="Download JSON"><i
+          class="fa-solid fa-download"></i></button>
+    </div>
+    <div class="sp-tabs">
+      <button class="sp-tab active" data-tab="overview" onclick="switchSpTab('overview')"><i
+          class="fa-solid fa-chart-bar"></i> Overview</button>
+      <button class="sp-tab" data-tab="segments" onclick="switchSpTab('segments')"><i class="fa-solid fa-list"></i>
+        Segments</button>
+      <button class="sp-tab" data-tab="slideshow" onclick="switchSpTab('slideshow')"><i class="fa-solid fa-images"></i>
+        Slideshow</button>
+    </div>
+    <div class="sp-body" id="sp-body"></div>
+  </div>
+
+  <!-- MAP CONTROLS -->
+  <!-- <div id="map-controls">
+    <button class="map-ctrl-btn" onclick="map.zoomIn()" data-tip="Zoom in"><i class="fa-solid fa-plus"></i></button>
+    <button class="map-ctrl-btn" onclick="map.zoomOut()" data-tip="Zoom out"><i class="fa-solid fa-minus"></i></button>
+  </div> -->
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- Hidden file input -->
+  <input type="file" id="file-input" class="file-input" accept=".json" multiple>
+
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/themes.js"></script>
+  <script src="js/data-ingestion.js"></script>
+  <script src="js/trip-processing.js"></script>
+  <script src="js/wizard.js"></script>
+  <script src="js/customization.js"></script>
+  <script src="js/slideshow.js"></script>
+  <script src="js/trip-visualization.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
