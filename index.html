@@ -52,7 +52,7 @@
     <!-- <button class="hdr-btn primary" id="btn-trips" style="display:none" onclick="showTripsView()">
       <i class="fa-solid fa-map-location-dot"></i> <span>My Trips</span>
     </button> -->
-    <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+    <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
     <button class="hdr-btn primary" id="btn-github" style="display:flex"
       onclick="window.open('https://github.com/drbrownman/Tripel', '_blank')">
       <i class="fa-brands fa-github"></i> <span>Github</span>
@@ -107,6 +107,7 @@
         <h2>My Trips</h2>
         <span class="trip-count" id="trip-count-badge">0 trips</span>
         <div style="flex:1"></div>
+        <button class="btn sm ghost" id="btn-merge-trips" onclick="mergeSelectedTrips()" style="display:none"><i class="fa-solid fa-code-merge"></i> Merge</button>
         <button class="btn sm ghost" id="btn-group-year" onclick="toggleGroupByYear()" data-tip="Group by year"><i
             class="fa-solid fa-calendar"></i></button>
         <button class="btn sm ghost" onclick="openWizard()"><i class="fa-solid fa-plus"></i> Add</button>

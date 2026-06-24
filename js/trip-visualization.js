@@ -35,6 +35,8 @@ function adjustMapForPanel(open) {
 // ============================================================
 // APP VIEW MANAGEMENT
 // ============================================================
+window._selectedTripIds = new Set();
+
 function showHome() {
   document.getElementById('welcome-card').style.display = 'block';
   document.getElementById('trips-section').style.display = App.trips.length ? 'flex' : 'none';
@@ -53,7 +55,7 @@ function showTripsView() {
   document.getElementById('trips-section').style.display = 'flex';
   document.getElementById('trips-section').style.flexDirection = 'column';
   // document.getElementById('btn-trips').style.display = 'none';
-  if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'none';
+  if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'flex';
   // document.getElementById('btn-home').style.display = 'flex';
   document.getElementById('side-panel').classList.remove('open');
   adjustMapForPanel(false);
@@ -64,7 +66,6 @@ function showTripsView() {
   //Disabled because we are no longer computing destination centers
   // if (App.trips.length) {
   //   // document.getElementById('btn-trips').style.display = 'flex';
-  //   if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'flex';
   //   // Show all trip locations as dots on map
   //   const pts = App.trips.filter(t => t.destination).map(t => [t.destination.lat, t.destination.lng]);
   //   if (pts.length) {
@@ -91,10 +92,15 @@ function toggleGroupByYear() {
 function renderTripCards() {
   const grid = document.getElementById('trips-grid');
   const badge = document.getElementById('trip-count-badge');
-  const regularTrips = App.trips.filter(t => t.id !== 'all-trips');
+  const regularTrips = App.trips.filter(t => t.id !== 'all-trips').filter(t => !t._hidden);
   const allTripsTrip = App.trips.find(t => t.id === 'all-trips');
 
   badge.textContent = `${regularTrips.length} trip${regularTrips.length !== 1 ? 's' : ''}`;
+
+  const mergeBtn = document.getElementById('btn-merge-trips');
+  if (mergeBtn) {
+    mergeBtn.style.display = window._selectedTripIds.size > 1 ? 'inline-block' : 'none';
+  }
 
   if (!regularTrips.length) {
     grid.innerHTML = `<div class="empty-trips" style="grid-column:1/-1"><i class="fa-solid fa-map-pin"></i><p>No trips yet. Import your travel data to get started.</p></div>`;
@@ -139,12 +145,83 @@ function tripCardHtml(t) {
       </div>
     </div>
     <div class="trip-card-actions">
-      <button class="view" onclick="event.stopPropagation();viewTrip('${t.id}')"><i class="fa-solid fa-eye"></i></button>
-      <button onclick="event.stopPropagation();downloadTripJSON('${t.id}')"><i class="fa-solid fa-download"></i></button>
+      <button title="View Trip" class="view" onclick="event.stopPropagation();viewTrip('${t.id}')"><i class="fa-solid fa-expand"></i></button>
+      ${addHideButton(t.id)}
+      <button title="Download JSON" onclick="event.stopPropagation();downloadTripJSON('${t.id}')"><i class="fa-solid fa-download"></i></button>
+      ${t.id !== 'all-trips' ? `<div style="display:flex;align-items:center;padding:0 8px;cursor:pointer;" onclick="event.stopPropagation()"><input type="checkbox" title="Select for Merge" style="cursor:pointer;width:16px;height:16px;" ${window._selectedTripIds && window._selectedTripIds.has(t.id) ? 'checked' : ''} onchange="window.toggleTripSelect('${t.id}', this.checked)"></div>` : ''}
     </div>
   </div>`;
 }
 
+function addHideButton(tripId) {
+  if (tripId !== "all-trips") {
+    return `<button title="Hide Trip" onclick="event.stopPropagation();hideTrip('${tripId}')"><i class="fa-solid fa-eye-slash"></i></button>`;
+  }
+  return "";
+}
+
+function hideTrip(tripId) {
+  App.trips.find(t => t.id === tripId)._hidden = true;
+  renderTripCards();
+}
+
+window.toggleTripSelect = function (tripId, checked) {
+  if (!window._selectedTripIds) window._selectedTripIds = new Set();
+  if (checked) {
+    window._selectedTripIds.add(tripId);
+  } else {
+    window._selectedTripIds.delete(tripId);
+  }
+  const mergeBtn = document.getElementById('btn-merge-trips');
+  if (mergeBtn) {
+    mergeBtn.style.display = window._selectedTripIds.size > 1 ? 'inline-block' : 'none';
+  }
+};
+
+window.mergeSelectedTrips = async function () {
+  if (!window._selectedTripIds || window._selectedTripIds.size < 2) return;
+  const selectedIds = Array.from(window._selectedTripIds);
+  const tripsToMerge = App.trips.filter(t => selectedIds.includes(t.id)).sort((a, b) => a.startTime - b.startTime);
+
+  if (tripsToMerge.length < 2) return;
+
+  const newElements = [];
+  tripsToMerge.forEach(t => newElements.push(...t.elements));
+  newElements.sort((a, b) => a.startTime - b.startTime);
+
+  const startTime = newElements[0].startTime;
+  const endTime = newElements.at(-1).endTime;
+  const name = "Merged trip: " + tripsToMerge.map(t => t.name).join(" and ");
+
+  const newTrip = {
+    id: uid(),
+    _hidden: false,
+    startTime: startTime,
+    endTime: endTime,
+    displayStartDate: tripsToMerge[0].displayStartDate,
+    displayStartShortDate: tripsToMerge[0].displayStartShortDate,
+    displayEndDate: tripsToMerge.at(-1).displayEndDate,
+    elements: newElements,
+    name: name,
+    stats: {},
+    destination: null,
+    _maxRange: Math.max(...tripsToMerge.map(t => t._maxRange || 0))
+  };
+
+  if (window.calcTripStats) {
+    await window.calcTripStats(newTrip);
+  }
+
+  // App.trips = App.trips.filter(t => !selectedIds.includes(t.id));
+  App.trips.push(newTrip);
+  App.trips.sort((a, b) => b.startTime - a.startTime);
+
+  window._selectedTripIds.clear();
+
+  // if (window.saveAppState) window.saveAppState();
+  if (window.renderTripCards) window.renderTripCards();
+  if (window.toast) toast('Trips merged successfully', 'success');
+};
 
 // ============================================================
 // TRIP VIEW

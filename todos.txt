@@ -15,7 +15,6 @@ P??
 
 Nice to have
 P1
-- Merge trips
 - Mark trips starred, checked, exclamation
 
 P2

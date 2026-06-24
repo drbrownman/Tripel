@@ -239,6 +239,7 @@ function segmentTrips(onProgress) {
         // console.log("Adding trip starting at ", period.start, " -> ", period.end, " with ", elements.length, "elements ...");
         trips.push({
           id: uid(),
+          _hidden: false,
           startTime: period.start,
           endTime: period.end,
           displayStartDate: formatDate(period.start, getElementGeo(elements[0])?.lng),
