@@ -731,18 +731,25 @@ function renderTripOnMap(trip, retainView = false) {
     if (!geo) continue;
     const type = el._visitType || 'default';
     const vt = VISIT_TYPES[type] || VISIT_TYPES.default;
-    const isFirst = visitIdx === 0;
-    const isLast = visitIdx === trip.elements.filter(e => e.visit && !e._hidden).length - 1;
-    const markerClass = isFirst ? 'start' : isLast ? 'end' : type;
 
-    let colorStr = isFirst ? '#52e552' : isLast ? '#e14b4b' : (el._markerColor || staysColor);
-    if (type === 'home' && !el._markerColor && !isFirst && !isLast) colorStr = hColor;
+    //For now, remove first and last marker
+    // const isFirst = visitIdx === 0;
+    // const isLast = visitIdx === trip.elements.filter(e => e.visit && !e._hidden).length - 1;
+    // const markerClass = isFirst ? 'start' : isLast ? 'end' : type;
+    // let colorStr = isFirst ? '#52e552' : isLast ? '#e14b4b' : (el._markerColor || staysColor);
+    // if (type === 'home' && !el._markerColor && !isFirst && !isLast) colorStr = hColor;
+    // let iconStr = isFirst ? 'fa-flag' : isLast ? 'fa-flag-checkered' : vt.icon;
+    // if (!isFirst && !isLast) {
+    //   if (type === 'home' && o.homeIcon) iconStr = o.homeIcon;
+    //   if (type === 'stay' && o.staysIcon) iconStr = o.staysIcon;
+    // }
 
-    let iconStr = isFirst ? 'fa-flag' : isLast ? 'fa-flag-checkered' : vt.icon;
-    if (!isFirst && !isLast) {
-      if (type === 'home' && o.homeIcon) iconStr = o.homeIcon;
-      if (type === 'stay' && o.staysIcon) iconStr = o.staysIcon;
-    }
+    const markerClass = type;
+    let colorStr = el._markerColor || staysColor;
+    if (type === 'home' && !el._markerColor) colorStr = hColor;
+    let iconStr = vt.icon;
+    if (type === 'home' && o.homeIcon) iconStr = o.homeIcon;
+    if (type === 'stay' && o.staysIcon) iconStr = o.staysIcon;
 
     const icon = L.divIcon({
       className: 'custom-div-icon',
