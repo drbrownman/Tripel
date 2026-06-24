@@ -240,6 +240,7 @@ function segmentTrips(onProgress) {
         trips.push({
           id: uid(),
           _hidden: false,
+          _tag: '',
           startTime: period.start,
           endTime: period.end,
           displayStartDate: formatDate(period.start, getElementGeo(elements[0])?.lng),

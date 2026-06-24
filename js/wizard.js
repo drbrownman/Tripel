@@ -127,6 +127,8 @@ async function wizardNext() {
 
         const allTripsSpecial = {
           id: 'all-trips',
+          _hidden: false,
+          _tag: 'Star',
           name: 'All Trips',
           startTime: first.startTime,
           endTime: last.endTime,

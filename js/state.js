@@ -22,6 +22,13 @@ const TAG_COLORS = { home: 'var(--accent)', work: 'var(--accent4)', chores: 'var
 const TAG_LABELS = { home: 'Home', work: 'Work', chores: 'Chores', ignore: 'Ignore', none: 'None' };
 const EARTH_R = 6371008.8; // meters
 
+const TRIP_TAGS = [
+  { icon: "<i class='fa-solid fa-tag'></i>", title: "" },
+  { icon: "<i class='fa-solid fa-star'></i>", title: "Star" },
+  { icon: "<i class='fa-solid fa-check-double'></i>", title: "Done" },
+  { icon: "<i class='fa-solid fa-exclamation'></i>", title: "Important" },
+  { icon: "<i class='fa-solid fa-poop'></i>", title: "Ignore" },
+];
 
 // ============================================================
 // APP STATE

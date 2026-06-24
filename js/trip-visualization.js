@@ -145,12 +145,30 @@ function tripCardHtml(t) {
       </div>
     </div>
     <div class="trip-card-actions">
-      <button title="View Trip" class="view" onclick="event.stopPropagation();viewTrip('${t.id}')"><i class="fa-solid fa-expand"></i></button>
+      ${t.id !== 'all-trips' ? `<div style="display:flex;align-items:center;padding:0 8px;cursor:pointer;" onclick="event.stopPropagation()"><input type="checkbox" title="Select for Merge" style="cursor:pointer;width:16px;height:16px;" ${window._selectedTripIds && window._selectedTripIds.has(t.id) ? 'checked' : ''} onchange="window.toggleTripSelect('${t.id}', this.checked)"></div>` : ''}
+      ${addTripTagButton(t.id)}
       ${addHideButton(t.id)}
       <button title="Download JSON" onclick="event.stopPropagation();downloadTripJSON('${t.id}')"><i class="fa-solid fa-download"></i></button>
-      ${t.id !== 'all-trips' ? `<div style="display:flex;align-items:center;padding:0 8px;cursor:pointer;" onclick="event.stopPropagation()"><input type="checkbox" title="Select for Merge" style="cursor:pointer;width:16px;height:16px;" ${window._selectedTripIds && window._selectedTripIds.has(t.id) ? 'checked' : ''} onchange="window.toggleTripSelect('${t.id}', this.checked)"></div>` : ''}
     </div>
   </div>`;
+}
+
+function addTripTagButton(tripId) {
+  const trip = App.trips.find(t => t.id === tripId);
+  if (trip && trip._hidden) return "";
+  let currentTag = trip._tag || "";
+  let index = TRIP_TAGS.findIndex(t => t.title === currentTag);
+  if (index === -1) index = 0;
+  return `<button id="btn-tag-${tripId}" title="${currentTag}" onclick="event.stopPropagation();cycleTripTag('${tripId}')">${TRIP_TAGS[index].icon}</button>`;
+}
+
+function cycleTripTag(tripId) {
+  const trip = App.trips.find(t => t.id === tripId);
+  let index = TRIP_TAGS.findIndex(t => t.title === trip._tag);
+  index = (index + 1) % TRIP_TAGS.length;
+  trip._tag = TRIP_TAGS[index].title;
+  document.getElementById(`btn-tag-${tripId}`).title = TRIP_TAGS[index].title;
+  document.getElementById(`btn-tag-${tripId}`).innerHTML = TRIP_TAGS[index].icon;
 }
 
 function addHideButton(tripId) {
