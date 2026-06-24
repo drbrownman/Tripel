@@ -1,15 +1,28 @@
 Current bugs
-- Trips scroller doesnt hold position
-- STarting and ending markers are arbitary (remove, or add them at the beginnng of the trip)
-- Overlapping marker?
+P1
+- Starting and ending markers are arbitary (remove, or add them at the beginnng of the trip)
 - In "all trips", hide markers and drives automatically
 - Hide activity.drive automatically
+
+P2
 - Very regionaly trips with few stops get named "Unknown" .. could be due to too few qualifying points for naming
 
+P??
+- Overlapping marker?
+
+
+
+
 Nice to have
+P1
+- Merge trips
+- Mark trips starred, checked, exclamation
+
+P2
 - Change marker look
 - Go to previous/next trip
-- Mark trips starred, checked, exclamation
-- Merge trips
 
- 
+P??
+- Filter data by date before injestion
+- Use places API to get info about each marker in the trip and use that to improve tagging
+- When the points in a map are too sparse, use routes

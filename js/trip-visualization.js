@@ -47,6 +47,7 @@ function showHome() {
   App.map.setView([20, 0], 3);
 }
 
+let _prevTripsGridScrollPosition = 0.0;
 function showTripsView() {
   document.getElementById('welcome-card').style.display = 'none';
   document.getElementById('trips-section').style.display = 'flex';
@@ -60,23 +61,24 @@ function showTripsView() {
   resetMapToTheme();
   renderTripCards();
 
-  if (App.trips.length) {
-    // document.getElementById('btn-trips').style.display = 'flex';
-    if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'flex';
-    // Show all trip locations as dots on map
-    const pts = App.trips.filter(t => t.destination).map(t => [t.destination.lat, t.destination.lng]);
-    if (pts.length) {
-      App.map.fitBounds(pts, { padding: [60, 60] });
-      pts.forEach(([lat, lng]) => {
-        const icon = L.divIcon({
-          className: 'custom-div-icon',
-          html: `<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0.7;"></div>`,
-          iconSize: [8, 8], iconAnchor: [4, 4]
-        });
-        L.marker([lat, lng], { icon }).addTo(App.mapLayers.tripGroup);
-      });
-    }
-  }
+  //Disabled because we are no longer computing destination centers
+  // if (App.trips.length) {
+  //   // document.getElementById('btn-trips').style.display = 'flex';
+  //   if (document.getElementById('btn-save')) document.getElementById('btn-save').style.display = 'flex';
+  //   // Show all trip locations as dots on map
+  //   const pts = App.trips.filter(t => t.destination).map(t => [t.destination.lat, t.destination.lng]);
+  //   if (pts.length) {
+  //     App.map.fitBounds(pts, { padding: [60, 60] });
+  //     pts.forEach(([lat, lng]) => {
+  //       const icon = L.divIcon({
+  //         className: 'custom-div-icon',
+  //         html: `<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0.7;"></div>`,
+  //         iconSize: [8, 8], iconAnchor: [4, 4]
+  //       });
+  //       L.marker([lat, lng], { icon }).addTo(App.mapLayers.tripGroup);
+  //     });
+  //   }
+  // }
 }
 
 let _groupByYear = true;
@@ -119,6 +121,7 @@ function renderTripCards() {
     html += regularTrips.map(t => tripCardHtml(t)).join('');
   }
   grid.innerHTML = html;
+  grid.scrollTop = _prevTripsGridScrollPosition || 0.0;
 }
 
 function tripCardHtml(t) {
@@ -153,6 +156,7 @@ function viewTrip(tripId) {
   App.segFilter = { type: 'all', subtype: 'all' };
 
   // Hide main panel
+  _prevTripsGridScrollPosition = document.getElementById('trips-grid').scrollTop;
   document.getElementById('welcome-card').style.display = 'none';
   document.getElementById('trips-section').style.display = 'none';
 
