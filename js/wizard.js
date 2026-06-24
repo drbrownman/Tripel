@@ -112,7 +112,13 @@ async function wizardNext() {
         let maxRangeKm = 0;
 
         for (let i = App.trips.length - 1; i >= 0; i--) {
-          allElements.push(...(App.trips[i].elements.map(e => structuredClone(e))));
+          allElements.push(...(App.trips[i].elements.map(e =>
+            structuredClone(e)
+          ).map(e => ({
+            ...e,
+            _hidden: (e.visit ? true : (e.activity ? (e._activityMode != "flight" ? true : false) : false)),
+          }))
+          ));
           totalStops += App.trips[i].stats.stops || 0;
           totalDist += App.trips[i].stats.distKm || 0;
           if (App.trips[i].stats.maxRangeKm > maxRangeKm) maxRangeKm = App.trips[i].stats.maxRangeKm;
@@ -148,7 +154,8 @@ async function wizardNext() {
           destination: null,
           _destName: 'All regions',
           _maxRange: maxRangeKm,
-          isSpecial: true
+          isSpecial: true,
+          style: defaultTripStyle()
         };
         App.trips.unshift(allTripsSpecial);
       }

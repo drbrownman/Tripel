@@ -236,26 +236,31 @@ function segmentTrips(onProgress) {
           continue;
         }
 
-        // console.log("Adding trip starting at ", period.start, " -> ", period.end, " with ", elements.length, "elements ...");
+        const elementsEnriched = elements.map(el => ({
+          ...el,
+          _visitType: el.visit?.visitType || 'default',
+          _activityMode: detectActivityMode(el),
+        }))
+
+        // console.log("Adding trip starting at ", period.start, " -> ", period.end, " with ", elementsEnriched.length, "elements ...");
         trips.push({
           id: uid(),
           _hidden: false,
           _tag: '',
           startTime: period.start,
           endTime: period.end,
-          displayStartDate: formatDate(period.start, getElementGeo(elements[0])?.lng),
-          displayStartShortDate: formatShortDate(period.start, getElementGeo(elements[0])?.lng),
-          displayEndDate: formatDate(period.end, getElementGeo(elements.at(-1))?.lng),
-          elements: elements.map(el => ({
+          displayStartDate: formatDate(period.start, getElementGeo(elementsEnriched[0])?.lng),
+          displayStartShortDate: formatShortDate(period.start, getElementGeo(elementsEnriched[0])?.lng),
+          displayEndDate: formatDate(period.end, getElementGeo(elementsEnriched.at(-1))?.lng),
+          elements: elementsEnriched.map(el => ({
             ...el,
-            _hidden: false,
-            _visitType: el.visit?.visitType || 'default',
-            _activityMode: detectActivityMode(el),
+            _hidden: (el.activity ? (el._activityMode != "flight" ? true : false) : false),
           })),
           name: '',
           stats: {},
           destination: null,
           _maxRange: maxRange,
+          style: defaultTripStyle(),
         });
       }
 

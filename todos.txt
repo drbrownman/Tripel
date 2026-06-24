@@ -1,9 +1,4 @@
 Current bugs
-P1
-- Starting and ending markers are arbitary (remove, or add them at the beginnng of the trip)
-- In "all trips", hide markers and drives automatically
-- Hide activity.drive automatically
-
 P2
 - Very regionaly trips with few stops get named "Unknown" .. could be due to too few qualifying points for naming
 
@@ -14,9 +9,6 @@ P??
 
 
 Nice to have
-P1
-- Mark trips starred, checked, exclamation
-
 P2
 - Change marker look
 - Go to previous/next trip

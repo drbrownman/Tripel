@@ -223,7 +223,8 @@ window.mergeSelectedTrips = async function () {
     name: name,
     stats: {},
     destination: null,
-    _maxRange: Math.max(...tripsToMerge.map(t => t._maxRange || 0))
+    _maxRange: Math.max(...tripsToMerge.map(t => t._maxRange || 0)),
+    style: defaultTripStyle(),
   };
 
   if (window.calcTripStats) {
@@ -756,7 +757,7 @@ function renderTripOnMap(trip, retainView = false) {
     // const markerClass = isFirst ? 'start' : isLast ? 'end' : type;
     // let colorStr = isFirst ? '#52e552' : isLast ? '#e14b4b' : (el._markerColor || staysColor);
     // if (type === 'home' && !el._markerColor && !isFirst && !isLast) colorStr = hColor;
-    // let iconStr = isFirst ? 'fa-flag' : isLast ? 'fa-flag-checkered' : vt.icon;
+    // let iconStr = isFirst ? 'fa-play' : isLast ? 'fa-stop' : vt.icon;
     // if (!isFirst && !isLast) {
     //   if (type === 'home' && o.homeIcon) iconStr = o.homeIcon;
     //   if (type === 'stay' && o.staysIcon) iconStr = o.staysIcon;

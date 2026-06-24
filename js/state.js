@@ -2,6 +2,9 @@
 // CONSTANTS
 // ============================================================
 const VISIT_TYPES = {
+  home: { label: 'Home', icon: 'fa-house', color: 'var(--accent)' },
+  start: { label: 'Start', icon: 'fa-play', color: '#52e552' },
+  end: { label: 'End', icon: 'fa-stop', color: '#e14b4b' },
   stay: { label: 'Stay', icon: 'fa-bed', color: '#f1b5a2ff' },
   eat: { label: 'Eat', icon: 'fa-utensils', color: 'var(--accent3)' },
   attraction: { label: 'Attraction', icon: 'fa-star', color: '#f7b7f4ff' },

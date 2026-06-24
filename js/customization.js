@@ -1,23 +1,25 @@
+function defaultTripStyle() {
+  return {
+    themeId: PRESET_THEMES[0].id,
+    overrides: {
+      allLinesColor: '',
+      allLinesWeight: '',
+      allFlightsColor: '',
+      allFlightsWeight: '',
+      allActivitiesColor: '',
+      allStaysColor: '',
+      allMarkersColor: '',
+      homeMarkerColor: '',
+      hideDate: false,
+      hideTime: false,
+      hideDuration: false,
+      hideDistance: false
+    }
+  };
+}
+
 function renderSpOverviewCustomization(trip, container) {
-  if (!trip.style) {
-    trip.style = {
-      themeId: 'carto-dark',
-      overrides: {
-        allLinesColor: '',
-        allLinesWeight: '',
-        allFlightsColor: '',
-        allFlightsWeight: '',
-        allActivitiesColor: '',
-        allStaysColor: '',
-        allMarkersColor: '',
-        homeMarkerColor: '',
-        hideDate: false,
-        hideTime: false,
-        hideDuration: false,
-        hideDistance: false
-      }
-    };
-  }
+  if (!trip.style) trip.style = defaultTripStyle();
 
   const themesHtml = PRESET_THEMES.map(t => `<option value="${t.id}" ${trip.style.themeId === t.id ? 'selected' : ''}>${t.name}</option>`).join('');
 
@@ -44,7 +46,7 @@ function renderSpOverviewCustomization(trip, container) {
                ${PRESET_THEMES.map(t => `<option value="${t.id}" ${trip.style.overrides.basemapId === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
              </select>
           </div>
-          <div class="stat-row" style="margin-bottom:8px;">
+          <!-- div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">Home Icon</span>
              <select class="db-input" onchange="updateTripStyle('${trip.id}', 'homeIcon', this.value)">
                <option value="">Default</option>
@@ -54,7 +56,7 @@ function renderSpOverviewCustomization(trip, container) {
                <option value="fa-map-pin" ${trip.style.overrides.homeIcon === 'fa-map-pin' ? 'selected' : ''}>Map Pin</option>
                <option value="fa-location-dot" ${trip.style.overrides.homeIcon === 'fa-location-dot' ? 'selected' : ''}>Dot</option>
              </select>
-          </div>
+          </div -->
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">Stays Icon</span>
              <select class="db-input" onchange="updateTripStyle('${trip.id}', 'staysIcon', this.value)">
@@ -67,30 +69,30 @@ function renderSpOverviewCustomization(trip, container) {
           </div>
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">All Lines</span>
-             <input type="color" value="${trip.style.overrides.allLinesColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'allLinesColor', this.value)">
-             <input type="number" min="1" max="10" style="width:50px;" class="db-input" value="${trip.style.overrides.allLinesWeight || 3}" onchange="updateTripStyle('${trip.id}', 'allLinesWeight', this.value)">
+             <input type="color" id="customize-input-allLinesColor" value="${trip.style.overrides.allLinesColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).lineColor}" onchange="updateTripStyle('${trip.id}', 'allLinesColor', this.value)">
+             <input type="number" id="customize-input-allLinesWeight" min="1" max="10" style="width:50px;" class="db-input" value="${trip.style.overrides.allLinesWeight || PRESET_THEMES.find(t => t.id === trip.style.themeId).lineWeight}" onchange="updateTripStyle('${trip.id}', 'allLinesWeight', this.value)">
           </div>
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">All Flights</span>
-             <input type="color" value="${trip.style.overrides.allFlightsColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'allFlightsColor', this.value)">
-             <input type="number" min="1" max="10" style="width:50px;" class="db-input" value="${trip.style.overrides.allFlightsWeight || 2}" onchange="updateTripStyle('${trip.id}', 'allFlightsWeight', this.value)">
+             <input type="color" id="customize-input-allFlightsColor" value="${trip.style.overrides.allFlightsColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).flightColor}" onchange="updateTripStyle('${trip.id}', 'allFlightsColor', this.value)">
+             <input type="number" id="customize-input-allFlightsWeight" min="1" max="10" style="width:50px;" class="db-input" value="${trip.style.overrides.allFlightsWeight || PRESET_THEMES.find(t => t.id === trip.style.themeId).flightWeight}" onchange="updateTripStyle('${trip.id}', 'allFlightsWeight', this.value)">
           </div>
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">All Activities Marker</span>
-             <input type="color" value="${trip.style.overrides.allActivitiesColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'allActivitiesColor', this.value)">
+             <input type="color" id="customize-input-allActivitiesColor" value="${trip.style.overrides.allActivitiesColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default}" onchange="updateTripStyle('${trip.id}', 'allActivitiesColor', this.value)">
           </div>
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">All Stays Marker</span>
-             <input type="color" value="${trip.style.overrides.allStaysColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'allStaysColor', this.value)">
+             <input type="color" id="customize-input-allStaysColor" value="${trip.style.overrides.allStaysColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default}" onchange="updateTripStyle('${trip.id}', 'allStaysColor', this.value)">
           </div>
           <div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">All Other Markers</span>
-             <input type="color" value="${trip.style.overrides.allMarkersColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'allMarkersColor', this.value)">
+             <input type="color" id="customize-input-allMarkersColor" value="${trip.style.overrides.allMarkersColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default}" onchange="updateTripStyle('${trip.id}', 'allMarkersColor', this.value)">
           </div>
-          <div class="stat-row" style="margin-bottom:8px;">
+          <!-- div class="stat-row" style="margin-bottom:8px;">
              <span class="stat-label">Home Marker</span>
-             <input type="color" value="${trip.style.overrides.homeMarkerColor || '#ffffff'}" onchange="updateTripStyle('${trip.id}', 'homeMarkerColor', this.value)">
-          </div>
+             <input type="color" id="customize-input-homeMarkerColor" value="${trip.style.overrides.homeMarkerColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.home}" onchange="updateTripStyle('${trip.id}', 'homeMarkerColor', this.value)">
+          </div -->
         </div>
       </div>
       
@@ -110,11 +112,11 @@ function renderSpOverviewCustomization(trip, container) {
   `;
 }
 
-window.updateTripTheme = function(tripId, themeId) {
+window.updateTripTheme = function (tripId, themeId) {
   const trip = App.trips.find(t => t.id === tripId);
   if (!trip) return;
   trip.style.themeId = themeId;
-  
+
   const theme = getTheme(themeId);
   if (App.mapLayers.basemap) {
     App.map.removeLayer(App.mapLayers.basemap);
@@ -124,11 +126,20 @@ window.updateTripTheme = function(tripId, themeId) {
     maxZoom: 19,
     crossOrigin: true
   }).addTo(App.map);
-  
+
+  document.getElementById("customize-input-allLinesColor").value = trip.style.overrides.allLinesColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).lineColor;
+  document.getElementById("customize-input-allLinesWeight").value = trip.style.overrides.allLinesWeight || PRESET_THEMES.find(t => t.id === trip.style.themeId).lineWeight;
+  document.getElementById("customize-input-allFlightsColor").value = trip.style.overrides.allFlightsColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).flightColor;
+  document.getElementById("customize-input-allFlightsWeight").value = trip.style.overrides.allFlightsWeight || PRESET_THEMES.find(t => t.id === trip.style.themeId).flightWeight;
+  document.getElementById("customize-input-allActivitiesColor").value = trip.style.overrides.allActivitiesColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default;
+  document.getElementById("customize-input-allStaysColor").value = trip.style.overrides.allStaysColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default;
+  document.getElementById("customize-input-allMarkersColor").value = trip.style.overrides.allMarkersColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.default;
+  // document.getElementById("customize-input-homeMarkerColor").value = trip.style.overrides.homeMarkerColor || PRESET_THEMES.find(t => t.id === trip.style.themeId).markerColors.home;
+
   renderTripOnMap(trip, true);
 };
 
-window.updateTripStyle = function(tripId, key, val) {
+window.updateTripStyle = function (tripId, key, val) {
   const trip = App.trips.find(t => t.id === tripId);
   if (!trip) return;
   trip.style.overrides[key] = val;
@@ -149,20 +160,20 @@ window.updateTripStyle = function(tripId, key, val) {
   renderTripOnMap(trip, true);
 };
 
-window.updateTripPopup = function(tripId, key, val) {
+window.updateTripPopup = function (tripId, key, val) {
   const trip = App.trips.find(t => t.id === tripId);
   if (!trip) return;
   trip.style.overrides[key] = val;
   renderTripOnMap(trip, true); // Re-render to update popups
 };
 
-window.toggleSegStyle = function(id, evt) {
+window.toggleSegStyle = function (id, evt) {
   evt.stopPropagation();
   const el = document.getElementById(`style-${id}`);
   if (el) el.style.display = (el.style.display === 'none') ? 'flex' : 'none';
 };
 
-window.setSegStyle = function(id, key, val) {
+window.setSegStyle = function (id, key, val) {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
   const el = trip.elements.find(e => e._id === id);
