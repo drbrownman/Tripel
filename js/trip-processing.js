@@ -408,7 +408,7 @@ async function calcTripStats(trip) {
 async function nameTrip(trip) {
   await calcTripStats(trip);
   const s = trip.stats;
-  const dest = trip._destName || 'Unknown';
+  const dest = trip._destName;
   //const multiRegion = trip._destName.split(",").length > 1;
   const start = trip.startTime;
   const month = start.toLocaleString('en-US', { month: 'long' });
@@ -427,14 +427,17 @@ async function nameTrip(trip) {
     () => isDayTrip ? `Day trip in ${dest} – ${trip.displayStartShortDate}` : `${month} trip to ${dest}`,
     () => isWeekend ? `Weekend in ${dest} – ${trip.displayStartShortDate}` : `${month} trip to ${dest}`,
     () => isFlight ? `Flight to ${dest} – ${year}` : `Road trip to ${dest} – ${year}`,
+    () => `Short trip in ${month}, ${year}`
   ];
 
   // Pick best template
   let templateIdx = 0;
-  if (days <= 3) templateIdx = 3;
+  if (dest.length() == 0) templateIdx = 6;
+  else if (days <= 1) templateIdx = 3;
+  else if (days <= 4) templateIdx = 4;
   else if (dist > 500) templateIdx = 1;
   else if (days > 14) templateIdx = 2;
-  else if (isFlight) templateIdx = 4;
+  else if (isFlight) templateIdx = 5;
   else templateIdx = 0;
 
   return templates[templateIdx]();

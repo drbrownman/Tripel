@@ -1,6 +1,4 @@
 Current bugs
-P2
-- Very regionaly trips with few stops get named "Unknown" .. could be due to too few qualifying points for naming
 
 P??
 - Overlapping marker?
