@@ -432,7 +432,7 @@ async function nameTrip(trip) {
 
   // Pick best template
   let templateIdx = 0;
-  if (dest.length() == 0) templateIdx = 6;
+  if (dest.length == 0) templateIdx = 6;
   else if (days <= 1) templateIdx = 3;
   else if (days <= 4) templateIdx = 4;
   else if (dist > 500) templateIdx = 1;
