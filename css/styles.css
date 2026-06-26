@@ -18,8 +18,10 @@
   --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.3);
   --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  --font-head: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  /* --font-head: 'Syne', sans-serif; */
+  --font-head: sans-serif;
+  /* --font-body: 'DM Sans', sans-serif; */
+  --font-body: sans-serif;
   --panel-w: 420px;
 }
 
@@ -106,7 +108,7 @@ a:hover {
 #header .logo {
   font-family: var(--font-head);
   font-weight: 800;
-  font-size: 18px;
+  font-size: 32px;
   color: var(--accent);
   letter-spacing: -0.5px;
   /* display: flex; */

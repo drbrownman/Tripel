@@ -41,7 +41,7 @@ function renderSpSlideshow(trip, container) {
     overlay.style.padding = '20px';
     overlay.style.borderRadius = '8px';
     overlay.style.display = 'none';
-    overlay.style.fontFamily = 'var(--font-heading)';
+    overlay.style.fontFamily = 'var(--font-head)';
     overlay.innerHTML = `
       <h1 id="slide-title" style="margin:0; font-size:32px; color:white;"></h1>
       <h2 id="slide-subtitle" style="margin:8px 0 0; font-size:20px; color:white; font-weight:500;"></h2>
@@ -302,6 +302,8 @@ window.downloadSlide = async function (id) {
   const canvasH = Math.round(captureH * scale);
 
   try {
+    await document.fonts.ready;
+
     const dataUrl = await domtoimage.toPng(mapEl, {
       width: canvasW,
       height: canvasH,
@@ -326,7 +328,7 @@ window.downloadSlide = async function (id) {
     toast('Download complete', 'success');
   } catch (e) {
     console.error('Screenshot error:', e);
-    toast('Failed to capture screenshot. Some basemaps block cross-origin requests.', 'error');
+    toast('Failed to capture screenshot.', 'error');
   } finally {
     if (controls) controls.style.display = '';
     if (guideOverlay) guideOverlay.style.display = '';
