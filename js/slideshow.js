@@ -16,10 +16,10 @@ function renderSpSlideshow(trip, container) {
 
   trip.slides.forEach((s, idx) => {
     html += `
-      <div class="info-card" style="padding:12px; cursor:pointer; position:relative; border:1px solid transparent;" onclick="previewSlide('${s.id}'); document.querySelectorAll('#slide-list .info-card').forEach(c=>c.style.borderColor='transparent'); this.style.borderColor='var(--accent)';" id="slide-tile-${s.id}">
+      <div class="info-card" style="padding:12px; cursor:pointer; position:relative; border:1px solid transparent;" onclick="previewSlide('${s.id}'); editSlide('${s.id}'); document.querySelectorAll('#slide-list .info-card').forEach(c=>c.style.borderColor='transparent'); this.style.borderColor='var(--accent)';" id="slide-tile-${s.id}">
         <div style="font-weight:600; font-size:13px; text-align:center;">Slide ${idx + 1}</div>
         <div style="font-size:11px; color:var(--text2); text-align:center; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.title}">${s.title || 'Untitled'}</div>
-        <button class="btn ghost sm w-100" style="margin-top:8px;" onclick="event.stopPropagation(); editSlide('${s.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+        <!-- button class="btn ghost sm w-100" style="margin-top:8px;" onclick="event.stopPropagation(); editSlide('${s.id}')"><i class="fa-solid fa-pen"></i> Edit</button -->
       </div>
     `;
   });
@@ -182,6 +182,7 @@ window.editSlide = function (id) {
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;">
         <button class="btn accent w-100" onclick="downloadSlide('${s.id}')"><i class="fa-solid fa-download"></i> Download</button>
+        <button class="btn accent w-100" onclick="updateSlide('${s.id}', 'center', App.map.getCenter()); updateSlide('${s.id}', 'zoom', App.map.getZoom());"><i class="fa-solid fa-save"></i> Save view</button>
         <button class="btn error w-100" style="background:var(--error);color:white;border:none;" onclick="deleteSlide('${s.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
       </div>
     </div>
@@ -240,7 +241,7 @@ function applySlideOverlay(slide) {
 window.downloadSlide = async function (id) {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
-  const slide = trip.slides.find(s => s.id === id) || trip.slides.length > 0 ? trip.slides[0].id : null;
+  const slide = trip.slides.find(s => s.id === id);
   if (!slide) return;
 
   // Ensure we are viewing it
@@ -267,13 +268,14 @@ window.downloadSlide = async function (id) {
   watermark.style.padding = '8px 14px';
   watermark.style.borderRadius = '6px';
   watermark.style.color = 'var(--accent)';
-  watermark.style.fontFamily = 'var(--font-heading), sans-serif';
-  watermark.style.fontWeight = '700';
-  watermark.style.fontSize = '20px';
-  watermark.style.display = 'flex';
-  watermark.style.alignItems = 'center';
+  watermark.style.fontFamily = 'var(--font-head), sans-serif';
+  watermark.style.fontWeight = '800';
+  watermark.style.fontSize = '32px';
+  watermark.style.letterSpacing = '-0.5px';
+  // watermark.style.display = 'flex';
+  // watermark.style.alignItems = 'center';
   watermark.style.gap = '8px';
-  watermark.innerHTML = '<i class="fa-solid fa-route"></i> Tripel';
+  watermark.innerHTML = '<i class="fa-solid fa-route"></i> <span>Tripel</span><span style="font-size:xx-small;">.xyz</span>';
   mapEl.appendChild(watermark);
 
   const mapRect = mapEl.getBoundingClientRect();
@@ -319,7 +321,7 @@ window.downloadSlide = async function (id) {
 
     const a = document.createElement('a');
     a.href = dataUrl;
-    a.download = `slide-${(slide.title || 'untitled').replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+    a.download = `tripelxyz-s${id}-${(slide.title || 'untitled').trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, '-').replace('--', '-')}.png`;
     a.click();
     toast('Download complete', 'success');
   } catch (e) {

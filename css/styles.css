@@ -109,8 +109,8 @@ a:hover {
   font-size: 18px;
   color: var(--accent);
   letter-spacing: -0.5px;
-  display: flex;
-  align-items: center;
+  /* display: flex; */
+  /* align-items: flex-end; */
   gap: 6px;
 }
 
