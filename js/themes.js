@@ -344,6 +344,7 @@ const PRESET_THEMES = [
   },
 
   // --- Alidade Satellite ---
+  /*--
   {
     id: 'alidade-sat-gold',
     name: 'Satellite Gold',
@@ -390,6 +391,7 @@ const PRESET_THEMES = [
     flightDashArray: '6, 6',
     markerColors: { home: '#ea80fc', default: '#00e5ff' }
   },
+  --*/
 
   // --- Stadia Outdoors ---
   {
@@ -818,6 +820,7 @@ const PRESET_THEMES = [
   },
 
   // --- Wikimedia ---
+  /*--
   {
     id: 'wiki-scholar',
     name: 'Wiki Scholar',
@@ -842,7 +845,8 @@ const PRESET_THEMES = [
     flightDashArray: '5, 10',
     markerColors: { home: '#e5989b', default: '#6d6875' }
   },
-
+  --*/
+  
   // ── MORE CROSS-BASEMAP THEME VARIATIONS ────────────────────
 
   {
@@ -953,6 +957,7 @@ const PRESET_THEMES = [
     flightDashArray: '5, 10',
     markerColors: { home: '#1d3557', default: '#457b9d' }
   },
+  /*--
   {
     id: 'sat-crimson',
     name: 'Satellite Crimson',
@@ -965,6 +970,7 @@ const PRESET_THEMES = [
     flightDashArray: '4, 8',
     markerColors: { home: '#ffffff', default: '#ff0a54' }
   }
+  --*/
 ];
 
 function getTheme(id) {
