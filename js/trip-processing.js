@@ -190,7 +190,7 @@ function segmentTrips(onProgress) {
         }
         // Collect all elements in this period
         const elements = App.rawData.filter(el =>
-          new Date(el.startTime) >= period.start && new Date(el.endTime) <= new Date(period.end + 3600000)
+          new Date(el.startTime) >= period.start && new Date(el.endTime) <= new Date(period.end.getTime() + 3600000)
         );
         if (!elements.length) continue;
 
