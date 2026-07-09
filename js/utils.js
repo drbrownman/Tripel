@@ -12,7 +12,10 @@ function haversine(lat1, lng1, lat2, lng2) {
 
 function parseGeo(geoStr) {
   if (!geoStr) return null;
-  const parts = geoStr.replace('geo:', '').split(',');
+  if (typeof geoStr === 'object') {
+    geoStr = geoStr.latLng;
+  }
+  const parts = geoStr.replace('geo:', '').replace(' ', '').split(',');
   if (parts.length < 2) return null;
   const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
   if (isNaN(lat) || isNaN(lng)) {

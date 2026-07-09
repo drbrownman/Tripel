@@ -251,7 +251,12 @@ async function handleFiles(fileList) {
     try {
       const text = await file.text();
       let data;
-      try { data = JSON.parse(text); } catch (e) {
+      try {
+        data = JSON.parse(text);
+        if (data.semanticSegments) {
+          data = data.semanticSegments;
+        }
+      } catch (e) {
         toast(`${file.name}: invalid JSON`, 'error'); continue;
       }
       progContainer.innerHTML = `Parsing ${data.length.toLocaleString()} items in ${file.name}...<div class="progress-bar-wrap"><div class="progress-bar" style="width:0%"></div></div>`;
