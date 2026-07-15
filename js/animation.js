@@ -8,6 +8,7 @@ let animState = {
   fps: 30,
   aspectRatio: '1:1',
   interval: null,
+  showTimestamp: false,
   keyframes: [] // { timeMs: 0, center: [lat, lng], zoom: 10 }
 };
 
@@ -23,6 +24,7 @@ function renderSpAnimation(trip, container) {
       zoom: App.map.getZoom()
     }];
   }
+  trip.animKeyframes.sort((a,b) => a.timeMs - b.timeMs);
   animState.keyframes = trip.animKeyframes;
 
   enterAnimationMode();
@@ -66,6 +68,12 @@ function renderSpAnimation(trip, container) {
             <option value="24" ${animState.speedMultiplier === 24 * 3600000 ? 'selected' : ''}>1s = 24h</option>
             <option value="48" ${animState.speedMultiplier === 48 * 3600000 ? 'selected' : ''}>1s = 2 days</option>
           </select>
+        </label>
+      </div>
+      
+      <div style="display:flex; justify-content:center; margin-top:12px;">
+        <label class="anim-speed-control">
+          <input type="checkbox" id="anim-timestamp-toggle" ${animState.showTimestamp ? 'checked' : ''} onchange="animState.showTimestamp = this.checked; updateAnimUI();"> Show Timestamp
         </label>
       </div>
     </div>
@@ -134,6 +142,9 @@ window.exitAnimationMode = function() {
     }
   }
 
+  let overlay = document.getElementById('anim-timestamp-overlay');
+  if (overlay) overlay.remove();
+
   // Restore full map render
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (trip) {
@@ -187,6 +198,7 @@ function positionAnimationMap() {
   mapEl.style.left = ((availW - mapW) / 2) + 'px';
   mapEl.style.right = 'auto';
   mapEl.style.bottom = 'auto';
+  mapEl.style.border = '1px solid rgba(255,255,255,0.2)';
 }
 
 function updateAnimGuideOverlay() {
@@ -235,9 +247,42 @@ window.setAnimSpeed = function(hoursPerSec) {
 // ============================================================
 // PLAYBACK LOGIC
 // ============================================================
-window.toggleAnimationPlay = function() {
-  if (animState.playing) pauseAnimation();
-  else playAnimation();
+
+async function preloadKeyframeTiles() {
+  const originalCenter = App.map.getCenter();
+  const originalZoom = App.map.getZoom();
+  
+  if (App.mapLayers.basemap) {
+    App.mapLayers.basemap.options.keepBuffer = 16;
+  }
+  
+  const btn = document.getElementById('anim-play-btn');
+  if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  
+  for (const kf of animState.keyframes) {
+    App.map.setView(kf.center, kf.zoom, { animate: false });
+    await new Promise(resolve => {
+      let fired = false;
+      const onTileLoad = () => { if(!fired) { fired = true; resolve(); }};
+      App.mapLayers.basemap.once('load', onTileLoad);
+      setTimeout(onTileLoad, 800); 
+    });
+  }
+  
+  App.map.setView(originalCenter, originalZoom, { animate: false });
+  await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+window.toggleAnimationPlay = async function() {
+  if (animState.playing || animState.preloading) {
+    pauseAnimation();
+  } else {
+    animState.preloading = true;
+    await preloadKeyframeTiles();
+    if (!animState.preloading) return; // Aborted during preload
+    animState.preloading = false;
+    playAnimation();
+  }
 };
 
 function playAnimation() {
@@ -272,6 +317,7 @@ function playAnimation() {
 
 function pauseAnimation() {
   animState.playing = false;
+  animState.preloading = false;
   if (animState.interval) clearInterval(animState.interval);
   const btn = document.getElementById('anim-play-btn');
   if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
@@ -352,6 +398,41 @@ function updateAnimUI() {
       `;
     }).join('');
   }
+
+  // Render Timestamp Overlay
+  let tsOverlay = document.getElementById('anim-timestamp-overlay');
+  if (!tsOverlay && animState.showTimestamp) {
+    tsOverlay = document.createElement('div');
+    tsOverlay.id = 'anim-timestamp-overlay';
+    tsOverlay.style.position = 'absolute';
+    tsOverlay.style.top = '20px';
+    tsOverlay.style.left = '20px';
+    tsOverlay.style.zIndex = '9999';
+    tsOverlay.style.color = 'white';
+    tsOverlay.style.background = 'rgba(0,0,0,0.6)';
+    tsOverlay.style.padding = '8px 12px';
+    tsOverlay.style.borderRadius = '8px';
+    tsOverlay.style.fontFamily = '"Syne", sans-serif';
+    tsOverlay.style.fontSize = '18px';
+    document.getElementById('map').appendChild(tsOverlay);
+  }
+  
+  if (tsOverlay) {
+    if (animState.showTimestamp) {
+      tsOverlay.style.display = 'block';
+      const curDate = new Date(trip.startTime.getTime() + animState.currentTime);
+      const m = curDate.toLocaleString('default', { month: 'short' });
+      const d = String(curDate.getDate()).padStart(2, '0');
+      const y = curDate.getFullYear();
+      let h = curDate.getHours();
+      const ampm = h >= 12 ? 'pm' : 'am';
+      h = h % 12 || 12;
+      const hs = String(h).padStart(2, '0');
+      tsOverlay.textContent = `${m}, ${d}, ${y} ${hs}${ampm}`;
+    } else {
+      tsOverlay.style.display = 'none';
+    }
+  }
 }
 
 function updateAnimMap() {
@@ -414,6 +495,7 @@ window.addAnimKeyframe = function() {
     zoom: zoom
   });
   
+  animState.keyframes.sort((a,b) => a.timeMs - b.timeMs);
   trip.animKeyframes = animState.keyframes;
   updateAnimUI();
 };
@@ -496,6 +578,23 @@ window.exportAnimationVideo = async function() {
   const mapEl = document.getElementById('map');
   const mapRect = mapEl.getBoundingClientRect();
   
+  await preloadKeyframeTiles();
+
+  const watermark = document.createElement('div');
+  watermark.style.position = 'absolute';
+  watermark.style.bottom = '20px';
+  watermark.style.right = '20px';
+  watermark.style.zIndex = '9999';
+  watermark.style.color = '#ffffff';
+  watermark.style.textShadow = '0px 0px 8px rgba(0,0,0,0.8)';
+  watermark.style.fontFamily = '"Syne", sans-serif';
+  watermark.style.fontWeight = '700';
+  watermark.style.fontSize = '32px';
+  watermark.style.letterSpacing = '-0.5px';
+  watermark.style.gap = '8px';
+  watermark.innerHTML = '<i class="fa-solid fa-route"></i> <span>Tripel</span><span style="font-size:xx-small;">.xyz</span>';
+  mapEl.appendChild(watermark);
+
   const canvas = document.createElement('canvas');
   canvas.width = mapRect.width;
   canvas.height = mapRect.height;
@@ -528,6 +627,7 @@ window.exportAnimationVideo = async function() {
     
     btn.style.display = 'block';
     progInfo.style.display = 'none';
+    if (watermark.parentNode) watermark.parentNode.removeChild(watermark);
     toast('Video exported successfully', 'success');
   };
 
@@ -554,16 +654,6 @@ window.exportAnimationVideo = async function() {
       img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
-        
-        // Draw Logo overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(canvas.width - 150, 20, 130, 40);
-        ctx.fillStyle = 'var(--accent, #63E6BE)';
-        ctx.font = '20px "Syne", sans-serif';
-        ctx.fillText('Tripel', canvas.width - 140, 47);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '12px "Syne", sans-serif';
-        ctx.fillText('.xyz', canvas.width - 85, 47);
       };
       img.src = dataUrl;
     } catch(e) {
