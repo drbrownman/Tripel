@@ -14,7 +14,7 @@ function resetMapToTheme(themeId = 'carto-dark') {
 }
 
 function initMap() {
-  App.map = L.map('map', { zoomControl: false, attributionControl: true }).setView([20, 0], 3);
+  App.map = L.map('map', { zoomControl: false, attributionControl: true, preferCanvas: true }).setView([20, 0], 3);
   resetMapToTheme('carto-dark');
   App.mapLayers.tripGroup = L.layerGroup().addTo(App.map);
 }
@@ -321,6 +321,8 @@ function renderSpTab() {
     if (window.exitSlideshowMode) window.exitSlideshowMode();
   } else if (App.spTab === 'slideshow') {
     if (window.renderSpSlideshow) renderSpSlideshow(trip, body);
+  } else if (App.spTab === 'animation') {
+    if (window.renderSpAnimation) renderSpAnimation(trip, body);
   }
 }
 
@@ -650,7 +652,7 @@ function cancelRename(oldName) {
 // ============================================================
 // MAP VISUALIZATION
 // ============================================================
-function renderTripOnMap(trip, retainView = false) {
+function renderTripOnMap(trip, retainView = false, maxTime = null) {
   clearTripMapLayers();
   const group = App.mapLayers.tripGroup;
   const bounds = [];
@@ -679,11 +681,22 @@ function renderTripOnMap(trip, retainView = false) {
   let lastDrawnPoint = null;
   // 1. Draw timeline paths
   for (const el of trip.elements.filter(e => e.timelinePath && !e._hidden)) {
-    const pts = el.timelinePath.map(p => {
+    if (maxTime && el.startTime.getTime() > maxTime) continue;
+    let validPts = el.timelinePath;
+    if (maxTime && el.endTime.getTime() > maxTime) {
+      // Find the proportion of time passed
+      const dur = el.endTime.getTime() - el.startTime.getTime();
+      const elapsed = maxTime - el.startTime.getTime();
+      const ratio = Math.max(0, Math.min(1, elapsed / dur));
+      const ptCount = Math.floor(validPts.length * ratio);
+      validPts = validPts.slice(0, ptCount);
+    }
+    
+    const pts = validPts.map(p => {
       const g = parseGeo(p.point);
       return g ? [g.lat, g.lng] : null;
     }).filter(Boolean);
-    if (lastDrawnPoint != null) {
+    if (lastDrawnPoint != null && pts.length > 0) {
       const distance = haversine(pts[0][0], pts[0][1], lastDrawnPoint[0], lastDrawnPoint[1]) / 1000;
       if (distance > 5 && distance < 500) {
         const opacity = (distance > 300) ? 0.3 : 0.8;
@@ -705,6 +718,7 @@ function renderTripOnMap(trip, retainView = false) {
 
   // 2. Draw activities NOT covered by timeline paths
   for (const el of trip.elements.filter(e => e.activity && !e._hidden)) {
+    if (maxTime && el.startTime.getTime() > maxTime) continue;
     if (coveredByPath(el)) continue;
     const start = parseGeo(el.activity.start);
     const end = parseGeo(el.activity.end);
@@ -746,6 +760,7 @@ function renderTripOnMap(trip, retainView = false) {
   // 3. Draw visit markers
   let visitIdx = 0;
   for (const el of trip.elements.filter(e => e.visit && !e._hidden)) {
+    if (maxTime && el.startTime.getTime() > maxTime) continue;
     const geo = parseGeo(el.visit.topCandidate?.placeLocation);
     if (!geo) continue;
     const type = el._visitType || 'default';

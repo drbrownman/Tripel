@@ -118,7 +118,8 @@ function greatCirclePoints(lat1, lng1, lat2, lng2, n = 80) {
   if (d < 0.001) return [[lat1, lng1], [lat2, lng2]];
   const pts = [];
 
-  const offsetIntensity = 0.5 + Math.random();
+  const seed = (Math.abs(lat1 + lng1 + lat2 + lng2) * 10000) % 1;
+  const offsetIntensity = 0.5 + seed;
 
   // Calculate initial bearing from point 1 to point 2 to determine "sideways" direction
   const yBearing = Math.sin(λ2 - λ1) * Math.cos(φ2);
