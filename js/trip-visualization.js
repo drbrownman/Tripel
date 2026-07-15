@@ -14,7 +14,7 @@ function resetMapToTheme(themeId = 'carto-dark') {
 }
 
 function initMap() {
-  App.map = L.map('map', { zoomControl: false, attributionControl: true, preferCanvas: true }).setView([20, 0], 3);
+  App.map = L.map('map', { zoomControl: false, zoomSnap: 0.25, attributionControl: true, preferCanvas: true }).setView([20, 0], 3);
   resetMapToTheme('carto-dark');
   App.mapLayers.tripGroup = L.layerGroup().addTo(App.map);
 }
@@ -691,7 +691,7 @@ function renderTripOnMap(trip, retainView = false, maxTime = null) {
       const ptCount = Math.floor(validPts.length * ratio);
       validPts = validPts.slice(0, ptCount);
     }
-    
+
     const pts = validPts.map(p => {
       const g = parseGeo(p.point);
       return g ? [g.lat, g.lng] : null;

@@ -5,7 +5,7 @@ let animState = {
   playing: false,
   currentTime: 0, // In ms relative to trip start
   speedMultiplier: 12 * 60 * 60 * 1000, // 1 sec = 12 hours (in ms)
-  fps: 30,
+  fps: 15,
   aspectRatio: '1:1',
   interval: null,
   showTimestamp: false,
@@ -24,7 +24,7 @@ function renderSpAnimation(trip, container) {
       zoom: App.map.getZoom()
     }];
   }
-  trip.animKeyframes.sort((a,b) => a.timeMs - b.timeMs);
+  trip.animKeyframes.sort((a, b) => a.timeMs - b.timeMs);
   animState.keyframes = trip.animKeyframes;
 
   enterAnimationMode();
@@ -111,15 +111,15 @@ function enterAnimationMode() {
     };
     window.addEventListener('resize', App._animationResizeHandler);
   }
-  
+
   animState.currentTime = 0;
   updateAnimMap();
 }
 
-window.exitAnimationMode = function() {
+window.exitAnimationMode = function () {
   document.body.classList.remove('animation-active');
   pauseAnimation();
-  
+
   const guideOverlay = document.getElementById('slideshow-guide-overlay');
   if (guideOverlay) guideOverlay.innerHTML = '';
 
@@ -167,11 +167,11 @@ function positionAnimationMap() {
   const headerH = 54;
   const availW = window.innerWidth - sidePanelW;
   const availH = window.innerHeight - headerH;
-  
+
   let mapW, mapH;
   const maxW = availW - 60;
   const maxH = availH - 60;
-  
+
   if (animState.aspectRatio === '1:1') {
     const size = Math.min(maxW, maxH);
     mapW = size; mapH = size;
@@ -223,12 +223,12 @@ function updateAnimGuideOverlay() {
   </svg>`;
 }
 
-window.setAnimAspectRatio = function(ratio) {
+window.setAnimAspectRatio = function (ratio) {
   animState.aspectRatio = ratio;
   positionAnimationMap();
   updateAnimGuideOverlay();
   App.map.invalidateSize();
-  
+
   // Update buttons
   const trip = App.trips.find(t => t.id === App.currentTripId);
   const container = document.getElementById('sp-body');
@@ -240,7 +240,7 @@ window.setAnimAspectRatio = function(ratio) {
   }
 };
 
-window.setAnimSpeed = function(hoursPerSec) {
+window.setAnimSpeed = function (hoursPerSec) {
   animState.speedMultiplier = parseInt(hoursPerSec) * 3600000;
 };
 
@@ -251,29 +251,29 @@ window.setAnimSpeed = function(hoursPerSec) {
 async function preloadKeyframeTiles() {
   const originalCenter = App.map.getCenter();
   const originalZoom = App.map.getZoom();
-  
+
   if (App.mapLayers.basemap) {
     App.mapLayers.basemap.options.keepBuffer = 16;
   }
-  
+
   const btn = document.getElementById('anim-play-btn');
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-  
+
   for (const kf of animState.keyframes) {
     App.map.setView(kf.center, kf.zoom, { animate: false });
     await new Promise(resolve => {
       let fired = false;
-      const onTileLoad = () => { if(!fired) { fired = true; resolve(); }};
+      const onTileLoad = () => { if (!fired) { fired = true; resolve(); } };
       App.mapLayers.basemap.once('load', onTileLoad);
-      setTimeout(onTileLoad, 800); 
+      setTimeout(onTileLoad, 800);
     });
   }
-  
+
   App.map.setView(originalCenter, originalZoom, { animate: false });
   await new Promise(resolve => setTimeout(resolve, 300));
 }
 
-window.toggleAnimationPlay = async function() {
+window.toggleAnimationPlay = async function () {
   if (animState.playing || animState.preloading) {
     pauseAnimation();
   } else {
@@ -288,22 +288,22 @@ window.toggleAnimationPlay = async function() {
 function playAnimation() {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
-  
+
   const totalDurationMs = trip.endTime.getTime() - trip.startTime.getTime();
   if (animState.currentTime >= totalDurationMs) {
     animState.currentTime = 0; // Loop to start
   }
-  
+
   animState.playing = true;
   document.getElementById('anim-play-btn').innerHTML = '<i class="fa-solid fa-pause"></i>';
-  
+
   const tickMs = 1000 / animState.fps;
   const timeStep = (animState.speedMultiplier / animState.fps);
 
   animState.interval = setInterval(() => {
     let nextTime = animState.currentTime + timeStep;
     nextTime = checkHiddenKeyframes(nextTime, totalDurationMs);
-    
+
     if (nextTime >= totalDurationMs) {
       animState.currentTime = totalDurationMs;
       pauseAnimation();
@@ -323,26 +323,26 @@ function pauseAnimation() {
   if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
 }
 
-window.stepAnimation = function(dir) {
+window.stepAnimation = function (dir) {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
   const totalDurationMs = trip.endTime.getTime() - trip.startTime.getTime();
   const timeStep = (animState.speedMultiplier / animState.fps) * 5; // step 5 frames
-  
+
   let nextTime = animState.currentTime + dir * timeStep;
   nextTime = Math.max(0, Math.min(nextTime, totalDurationMs));
   animState.currentTime = checkHiddenKeyframes(nextTime, totalDurationMs);
-  
+
   updateAnimUI();
   updateAnimMap();
 };
 
-window.seekAnimation = function(e) {
+window.seekAnimation = function (e) {
   const track = document.getElementById('anim-timeline-track');
   if (!track) return;
   const rect = track.getBoundingClientRect();
   const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  
+
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
   const totalDurationMs = trip.endTime.getTime() - trip.startTime.getTime();
@@ -356,15 +356,15 @@ function updateAnimUI() {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
   const totalDurationMs = trip.endTime.getTime() - trip.startTime.getTime();
-  
+
   const pct = (animState.currentTime / totalDurationMs) * 100;
   const prog = document.getElementById('anim-timeline-progress');
   if (prog) prog.style.width = pct + '%';
-  
+
   const lbl = document.getElementById('anim-current-time-label');
   if (lbl) {
     const curDate = new Date(trip.startTime.getTime() + animState.currentTime);
-    lbl.textContent = curDate.toLocaleString('default', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+    lbl.textContent = curDate.toLocaleString('default', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
   // Render keyframes on timeline
@@ -381,11 +381,11 @@ function updateAnimUI() {
   if (list) {
     list.innerHTML = animState.keyframes.map((kf, i) => {
       const kfDate = new Date(trip.startTime.getTime() + kf.timeMs);
-      const timeStr = kfDate.toLocaleString('default', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+      const timeStr = kfDate.toLocaleString('default', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       return `
         <div class="info-card" style="padding:8px; display:flex; justify-content:space-between; align-items:center; background:var(--surface3);">
           <div>
-            <div style="font-size:12px; font-weight:600;">Keyframe ${i+1}</div>
+            <div style="font-size:12px; font-weight:600;">Keyframe ${i + 1}</div>
             <div style="font-size:11px; color:var(--text2);">${timeStr}</div>
           </div>
           <div style="display:flex; gap:4px;">
@@ -416,7 +416,7 @@ function updateAnimUI() {
     tsOverlay.style.fontSize = '18px';
     document.getElementById('map').appendChild(tsOverlay);
   }
-  
+
   if (tsOverlay) {
     if (animState.showTimestamp) {
       tsOverlay.style.display = 'block';
@@ -438,27 +438,27 @@ function updateAnimUI() {
 function updateAnimMap() {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
-  
+
   const absTime = trip.startTime.getTime() + animState.currentTime;
-  
+
   // Map layers filtering
   renderTripOnMap(trip, true, absTime);
-  
+
   // Keyframe interpolation
   if (animState.keyframes.length > 0) {
     // Sort keyframes by time
-    const sorted = [...animState.keyframes].sort((a,b) => a.timeMs - b.timeMs);
+    const sorted = [...animState.keyframes].sort((a, b) => a.timeMs - b.timeMs);
     let prev = sorted[0];
     let next = sorted[sorted.length - 1];
-    
+
     for (let i = 0; i < sorted.length - 1; i++) {
-      if (animState.currentTime >= sorted[i].timeMs && animState.currentTime <= sorted[i+1].timeMs) {
+      if (animState.currentTime >= sorted[i].timeMs && animState.currentTime <= sorted[i + 1].timeMs) {
         prev = sorted[i];
-        next = sorted[i+1];
+        next = sorted[i + 1];
         break;
       }
     }
-    
+
     if (animState.currentTime <= prev.timeMs) {
       App.map.setView(prev.center, prev.zoom, { animate: false });
     } else if (animState.currentTime >= next.timeMs) {
@@ -468,12 +468,12 @@ function updateAnimMap() {
       const progress = (animState.currentTime - prev.timeMs) / range;
       const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       const eProgress = easeInOutCubic(progress);
-      
+
       const lat = prev.center[0] + (next.center[0] - prev.center[0]) * eProgress;
       const lng = prev.center[1] + (next.center[1] - prev.center[1]) * eProgress;
       const zoom = prev.zoom + (next.zoom - prev.zoom) * eProgress;
-      
-      App.map.setView([lat, lng], zoom, { animate: false });
+
+      App.map.setView([lat, lng], zoom, { animate: true });
     }
   }
 }
@@ -481,26 +481,26 @@ function updateAnimMap() {
 // ============================================================
 // KEYFRAMES
 // ============================================================
-window.addAnimKeyframe = function() {
+window.addAnimKeyframe = function () {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
-  
+
   const center = App.map.getCenter();
   const zoom = App.map.getZoom();
-  
+
   animState.keyframes.push({
     id: Date.now().toString(),
     timeMs: animState.currentTime,
     center: [center.lat, center.lng],
     zoom: zoom
   });
-  
-  animState.keyframes.sort((a,b) => a.timeMs - b.timeMs);
+
+  animState.keyframes.sort((a, b) => a.timeMs - b.timeMs);
   trip.animKeyframes = animState.keyframes;
   updateAnimUI();
 };
 
-window.seekToKeyframe = function(id) {
+window.seekToKeyframe = function (id) {
   const kf = animState.keyframes.find(k => k.id === id);
   if (kf) {
     animState.currentTime = kf.timeMs;
@@ -509,7 +509,7 @@ window.seekToKeyframe = function(id) {
   }
 };
 
-window.updateKeyframeView = function(id) {
+window.updateKeyframeView = function (id) {
   const kf = animState.keyframes.find(k => k.id === id);
   if (kf) {
     const center = App.map.getCenter();
@@ -521,14 +521,14 @@ window.updateKeyframeView = function(id) {
   }
 };
 
-window.deleteKeyframe = function(id) {
+window.deleteKeyframe = function (id) {
   animState.keyframes = animState.keyframes.filter(k => k.id !== id);
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (trip) trip.animKeyframes = animState.keyframes;
   updateAnimUI();
 };
 
-window.toggleKeyframeHidden = function(id) {
+window.toggleKeyframeHidden = function (id) {
   const kf = animState.keyframes.find(k => k.id === id);
   if (kf) {
     kf.hidden = !kf.hidden;
@@ -540,11 +540,11 @@ window.toggleKeyframeHidden = function(id) {
 
 function checkHiddenKeyframes(time, totalDurationMs) {
   if (animState.keyframes.length === 0) return time;
-  const sorted = [...animState.keyframes].sort((a,b) => a.timeMs - b.timeMs);
+  const sorted = [...animState.keyframes].sort((a, b) => a.timeMs - b.timeMs);
   for (let i = 0; i < sorted.length; i++) {
     const kf = sorted[i];
     if (kf.hidden) {
-      const nextTime = (i + 1 < sorted.length) ? sorted[i+1].timeMs : totalDurationMs;
+      const nextTime = (i + 1 < sorted.length) ? sorted[i + 1].timeMs : totalDurationMs;
       if (time >= kf.timeMs && time < nextTime) {
         return checkHiddenKeyframes(nextTime, totalDurationMs);
       }
@@ -556,17 +556,17 @@ function checkHiddenKeyframes(time, totalDurationMs) {
 // ============================================================
 // VIDEO EXPORT
 // ============================================================
-window.exportAnimationVideo = async function() {
+window.exportAnimationVideo = async function () {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
 
   if (animState.playing) pauseAnimation();
-  
+
   // Rewind
   animState.currentTime = 0;
   updateAnimUI();
   updateAnimMap();
-  
+
   const btn = document.getElementById('anim-export-btn');
   const progInfo = document.getElementById('anim-export-progress');
   btn.style.display = 'none';
@@ -574,10 +574,10 @@ window.exportAnimationVideo = async function() {
 
   // We'll capture the map using dom-to-image on an interval and write to a canvas,
   // while MediaRecorder captures the canvas stream.
-  
+
   const mapEl = document.getElementById('map');
   const mapRect = mapEl.getBoundingClientRect();
-  
+
   await preloadKeyframeTiles();
 
   const watermark = document.createElement('div');
@@ -585,10 +585,14 @@ window.exportAnimationVideo = async function() {
   watermark.style.bottom = '20px';
   watermark.style.right = '20px';
   watermark.style.zIndex = '9999';
+  watermark.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+  watermark.style.padding = '8px 14px';
   watermark.style.color = '#ffffff';
-  watermark.style.textShadow = '0px 0px 8px rgba(0,0,0,0.8)';
-  watermark.style.fontFamily = '"Syne", sans-serif';
-  watermark.style.fontWeight = '700';
+  watermark.style.borderRadius = '6px';
+  watermark.style.color = 'var(--accent)';
+  watermark.style.fontFamily = 'var(--font-head), sans-serif';
+  // watermark.style.textShadow = '0px 0px 8px rgba(0,0,0,0.8)';
+  watermark.style.fontWeight = '800';
   watermark.style.fontSize = '32px';
   watermark.style.letterSpacing = '-0.5px';
   watermark.style.gap = '8px';
@@ -599,23 +603,23 @@ window.exportAnimationVideo = async function() {
   canvas.width = mapRect.width;
   canvas.height = mapRect.height;
   const ctx = canvas.getContext('2d');
-  
-  // 30 FPS output stream
-  const stream = canvas.captureStream(30);
-  
+
+  // 15 FPS output stream
+  const stream = canvas.captureStream(15);
+
   // We specify webm format
   let options = { mimeType: 'video/webm; codecs=vp9' };
   if (!MediaRecorder.isTypeSupported(options.mimeType)) {
     options = { mimeType: 'video/webm' };
   }
-  
+
   const mediaRecorder = new MediaRecorder(stream, options);
   const recordedChunks = [];
-  
+
   mediaRecorder.ondataavailable = (e) => {
     if (e.data.size > 0) recordedChunks.push(e.data);
   };
-  
+
   mediaRecorder.onstop = () => {
     const blob = new Blob(recordedChunks, { type: 'video/webm' });
     const url = URL.createObjectURL(blob);
@@ -624,7 +628,7 @@ window.exportAnimationVideo = async function() {
     a.download = `tripel-animation-${trip.name.replace(/[^a-zA-Z0-9]/g, '-')}.webm`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     btn.style.display = 'block';
     progInfo.style.display = 'none';
     if (watermark.parentNode) watermark.parentNode.removeChild(watermark);
@@ -639,15 +643,15 @@ window.exportAnimationVideo = async function() {
   const totalDurationMs = trip.endTime.getTime() - trip.startTime.getTime();
   const tickMs = 1000 / 30; // Capture map at 30fps
   const timeStep = (animState.speedMultiplier / 30);
-  
+
   const drawFrame = async () => {
     try {
       // Hide zoom controls if any
       const controls = document.querySelector('.leaflet-control-container');
       if (controls) controls.style.display = 'none';
-      
+
       const dataUrl = await domtoimage.toPng(mapEl, { quality: 0.95 });
-      
+
       if (controls) controls.style.display = '';
 
       const img = new Image();
@@ -656,7 +660,7 @@ window.exportAnimationVideo = async function() {
         ctx.drawImage(img, 0, 0);
       };
       img.src = dataUrl;
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   };
@@ -664,19 +668,19 @@ window.exportAnimationVideo = async function() {
   const animInterval = setInterval(async () => {
     let nextTime = animState.currentTime + timeStep;
     nextTime = checkHiddenKeyframes(nextTime, totalDurationMs);
-    
+
     if (nextTime >= totalDurationMs) {
       animState.currentTime = totalDurationMs;
       clearInterval(animInterval);
       await drawFrame(); // draw last frame
-      
+
       // Stop recorder after a short delay to ensure last frame is caught
       setTimeout(() => {
         mediaRecorder.stop();
       }, 500);
       return;
     }
-    
+
     animState.currentTime = nextTime;
     updateAnimUI();
     updateAnimMap();
