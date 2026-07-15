@@ -1672,3 +1672,73 @@ body.slideshow-active #map {
   border: 2px solid var(--accent) !important;
   border-radius: 4px;
 }
+
+/* ===== SLIDE INFO CARDS (draggable overlays on map) ===== */
+.slide-info-card {
+  position: absolute;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  pointer-events: auto;
+  white-space: nowrap;
+}
+
+.slide-info-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.slide-info-card.dragging {
+  cursor: grabbing;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  transform: scale(1.04);
+  z-index: 1010;
+  transition: none;
+}
+
+.slide-info-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.slide-info-card-icon i {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.slide-info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.slide-info-card-value {
+  font-weight: 700;
+  font-size: 1em;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.slide-info-card-label {
+  font-size: 0.7em;
+  opacity: 0.65;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}

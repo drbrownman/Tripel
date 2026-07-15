@@ -309,7 +309,7 @@ async function calcTripStats(trip) {
       transportModes[mode] = (transportModes[mode] || 0) + 1;
     }
     if (el.visit) {
-      const dur = el.endTime - el.startTime;
+      const dur = new Date(el.endTime) - new Date(el.startTime);
       if (dur > longestStop) longestStop = dur;
       const geo = parseGeo(el.visit.topCandidate?.placeLocation);
       if (geo) visitPoints.push(geo);
@@ -326,6 +326,59 @@ async function calcTripStats(trip) {
   const days = Math.ceil((trip.endTime - trip.startTime) / 86400000);
   const hours = (trip.endTime - trip.startTime) / 3600000;
 
+  // ── New stats: per-day aggregation, max speed (excl. flights) ──
+
+  // Group elements by date for daily distance & travel time
+  const dailyDist = {};   // dateKey -> km
+  const dailyTravel = {}; // dateKey -> ms of travel time
+
+  let maxSpeedNoFlights = 0;
+
+  for (const el of trip.elements) {
+    const dateKey = new Date(el.startTime).toISOString().slice(0, 10);
+
+    // Per-day distance from timelinePaths
+    if (el.timelinePath) {
+      let segDist = 0;
+      for (let i = 1; i < el.timelinePath.length; i++) {
+        const p1 = parseGeo(el.timelinePath[i - 1].point);
+        const p2 = parseGeo(el.timelinePath[i].point);
+        if (p1 && p2) segDist += haversine(p1.lat, p1.lng, p2.lat, p2.lng) / 1000;
+      }
+      dailyDist[dateKey] = (dailyDist[dateKey] || 0) + segDist;
+    }
+
+    // Per-day travel time & max speed (excl. flights) from activities
+    if (el.activity) {
+      const dur = new Date(el.endTime) - new Date(el.startTime);
+      dailyTravel[dateKey] = (dailyTravel[dateKey] || 0) + dur;
+
+      const mode = el._activityMode || 'drive';
+      if (mode !== 'flight') {
+        const dist = parseFloat(el.activity.distanceMeters || 0) / 1000;
+        const hrs = dur / 3600000;
+        if (hrs > 0) {
+          const speed = dist / hrs;
+          if (speed > maxSpeedNoFlights && speed < 500) maxSpeedNoFlights = speed;
+        }
+      }
+    }
+  }
+
+  // Find max daily distance
+  let maxDailyDistKm = 0;
+  let maxDailyDistDate = '';
+  for (const [dk, km] of Object.entries(dailyDist)) {
+    if (km > maxDailyDistKm) { maxDailyDistKm = km; maxDailyDistDate = dk; }
+  }
+
+  // Find longest travel day
+  let longestTravelDayMs = 0;
+  let longestTravelDayDate = '';
+  for (const [dk, ms] of Object.entries(dailyTravel)) {
+    if (ms > longestTravelDayMs) { longestTravelDayMs = ms; longestTravelDayDate = dk; }
+  }
+
   trip.stats = {
     distKm: Math.round(totalDist),
     days,
@@ -334,6 +387,12 @@ async function calcTripStats(trip) {
     transportModes,
     longestStop,
     avgSpeedKmh: hours > 0 ? Math.round(totalDist / hours) : 0,
+    // New stats for info cards
+    maxDailyDistKm: Math.round(maxDailyDistKm),
+    maxDailyDistDate,
+    longestTravelDayHrs: +(longestTravelDayMs / 3600000).toFixed(1),
+    longestTravelDayDate,
+    maxSpeedNoFlightsKmh: Math.round(maxSpeedNoFlights),
   };
 
   // Compute destination
