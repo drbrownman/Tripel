@@ -126,18 +126,48 @@ function enterSlideshowMode() {
 
 function positionSquareMap() {
   const mapEl = document.getElementById('map');
+  
+  // Check the active slide's aspect ratio
+  let ratio = '1:1';
+  const trip = App.trips.find(t => t.id === App.currentTripId);
+  if (trip && window._currentPreviewSlideId) {
+    const slide = trip.slides.find(s => s.id === window._currentPreviewSlideId);
+    if (slide && slide.aspectRatio) {
+      ratio = slide.aspectRatio;
+    }
+  }
+
   // Get the available area (everything to the left of the side panel)
   const sidePanelW = 400;
   const headerH = 54;
   const availW = window.innerWidth - sidePanelW;
   const availH = window.innerHeight - headerH;
-  const size = Math.min(availW - 60, availH - 60); // 30px padding on each side
+  const maxW = availW - 60; // 30px padding on each side
+  const maxH = availH - 60; // 30px padding on each side
+
+  let width, height;
+  if (ratio === '9:16') {
+    const testH = maxH;
+    const testW = testH * 9 / 16;
+    if (testW <= maxW) {
+      width = testW;
+      height = testH;
+    } else {
+      width = maxW;
+      height = width * 16 / 9;
+    }
+  } else {
+    // Default 1:1 square
+    const size = Math.min(maxW, maxH);
+    width = size;
+    height = size;
+  }
 
   mapEl.style.position = 'fixed';
-  mapEl.style.width = size + 'px';
-  mapEl.style.height = size + 'px';
-  mapEl.style.top = (headerH + (availH - size) / 2) + 'px';
-  mapEl.style.left = ((availW - size) / 2) + 'px';
+  mapEl.style.width = Math.round(width) + 'px';
+  mapEl.style.height = Math.round(height) + 'px';
+  mapEl.style.top = (headerH + (availH - height) / 2) + 'px';
+  mapEl.style.left = ((availW - width) / 2) + 'px';
   mapEl.style.right = 'auto';
   mapEl.style.bottom = 'auto';
 }
@@ -193,6 +223,7 @@ window.captureSlide = function () {
     backgroundColor: '#0d0f14',
     // Info cards
     infoCards: [],
+    aspectRatio: '1:1',
   });
 
   renderSpTab();
@@ -208,6 +239,13 @@ window.previewSlide = function (id) {
   if (!trip) return;
   const slide = trip.slides.find(s => s.id === id);
   if (!slide) return;
+
+  // Reposition map based on ratio
+  positionSquareMap();
+  updateGuideOverlay();
+  if (App.map) {
+    App.map.invalidateSize();
+  }
 
   App.map.setView(slide.center, slide.zoom);
 
@@ -264,6 +302,7 @@ window.editSlide = function (id) {
   if (s.hideBasemap === undefined) s.hideBasemap = false;
   if (s.backgroundColor === undefined) s.backgroundColor = '#0d0f14';
   if (!s.infoCards) s.infoCards = [];
+  if (s.aspectRatio === undefined) s.aspectRatio = '1:1';
 
   // Highlight tile
   document.querySelectorAll('#slide-list .info-card').forEach(c => c.style.borderColor = 'transparent');
@@ -292,6 +331,13 @@ window.editSlide = function (id) {
       <div class="setting-group" style="padding:0; border:none; margin-bottom:8px;">
         <label>Description</label>
         <textarea class="db-input" rows="2" oninput="updateSlide('${s.id}', 'description', this.value)">${s.description}</textarea>
+      </div>
+      <div class="setting-group" style="padding:0; border:none; margin-bottom:12px;">
+        <label style="margin-bottom:6px; display:block;">Aspect Ratio</label>
+        <div style="display:flex; gap:8px;">
+          <button class="btn ${s.aspectRatio === '9:16' ? 'ghost' : 'accent'} sm w-100" onclick="updateSlideRatio('${s.id}', '1:1')"><i class="fa-solid fa-square"></i> Square (1:1)</button>
+          <button class="btn ${s.aspectRatio === '9:16' ? 'accent' : 'ghost'} sm w-100" onclick="updateSlideRatio('${s.id}', '9:16')"><i class="fa-solid fa-mobile-screen-button"></i> Vertical (9:16)</button>
+        </div>
       </div>
       <div class="setting-group" style="padding:0; border:none; margin-bottom:8px;">
         <label>Overlay Color</label>
@@ -600,10 +646,35 @@ window.updateSlide = function (id, key, val) {
   applySlideOverlay(slide);
 };
 
+window.updateSlideRatio = function (slideId, ratio) {
+  const trip = App.trips.find(t => t.id === App.currentTripId);
+  if (!trip) return;
+  const slide = trip.slides.find(s => s.id === slideId);
+  if (!slide) return;
+
+  slide.aspectRatio = ratio;
+  
+  // Reposition map
+  positionSquareMap();
+  updateGuideOverlay();
+  if (App.map) {
+    App.map.invalidateSize();
+  }
+
+  // Update info cards layout since map dimensions changed
+  renderInfoCards(slide, trip);
+  
+  // Re-render the editor panel to reflect changes
+  editSlide(slideId);
+};
+
 window.deleteSlide = function (id) {
   const trip = App.trips.find(t => t.id === App.currentTripId);
   if (!trip) return;
   trip.slides = trip.slides.filter(s => s.id !== id);
+  if (window._currentPreviewSlideId === id) {
+    window._currentPreviewSlideId = null;
+  }
   const overlay = document.getElementById('slide-overlay');
   if (overlay) overlay.style.display = 'none';
   // Clean up info cards and restore basemap
