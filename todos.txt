@@ -4,11 +4,7 @@ In progress
 P0
 
 P1 
-- Animation mode fixes
--- video capture
--- exit from animation should go back to overview
--- exit to trips should show trip list
--- do not pan/zoom to next keyframe in advance, go when the keyframe starts
+- Animation mode (retry with a different approach)
 - Filter data by date range before injestion
 - Bug: Slide title disappears in form (to be replicated)
 

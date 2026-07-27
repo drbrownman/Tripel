@@ -1621,9 +1621,6 @@ input[type=range]::-webkit-slider-thumb {
   }
 }
 
-/* ANIMATION MODE STYLES */
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 /* SECTION LABELS */
 .section-label {
   font-size: 11px;
